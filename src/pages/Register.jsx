@@ -38,8 +38,18 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
-      const result = await base44.auth.verifyOtp({ email, otpCode });
-      if (result?.access_token) base44.auth.setToken(result.access_token);
+      let token;
+      try {
+        const result = await base44.auth.verifyOtp({ email, otpCode });
+        token = result?.access_token;
+      } catch (err) {
+        if (err.message?.includes('already verified')) {
+          // already verified, just log them in
+        } else {
+          throw err;
+        }
+      }
+      if (token) base44.auth.setToken(token);
       await base44.auth.updateMe({ full_name: fullName, role, vehicle_type: vehicleType });
       window.location.href = role === 'driver' ? '/driver' : '/passenger';
     } catch (err) {
