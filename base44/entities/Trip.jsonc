@@ -1,0 +1,70 @@
+{
+  "name": "Trip",
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "title": "Request ID"
+    },
+    "bid_id": {
+      "type": "string",
+      "title": "Bid ID"
+    },
+    "driver_id": {
+      "type": "string",
+      "title": "Driver ID (email)"
+    },
+    "driver_name": {
+      "type": "string",
+      "title": "Driver Name"
+    },
+    "passenger_id": {
+      "type": "string",
+      "title": "Passenger ID (email)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "driver_arriving",
+        "in_progress",
+        "completed",
+        "cancelled"
+      ],
+      "default": "driver_arriving",
+      "title": "Status"
+    },
+    "agreed_price": {
+      "type": "number",
+      "title": "Agreed Price (\u20a6)"
+    },
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "person",
+        "goods"
+      ],
+      "title": "Request Type"
+    },
+    "pickup_address": {
+      "type": "string",
+      "title": "Pickup Address"
+    },
+    "dropoff_address": {
+      "type": "string",
+      "title": "Dropoff Address"
+    },
+    "distance_km": {
+      "type": "number",
+      "title": "Distance (km)"
+    },
+    "duration_min": {
+      "type": "number",
+      "title": "Duration (min)"
+    }
+  },
+  "required": [
+    "request_id",
+    "driver_id",
+    "agreed_price"
+  ]
+}

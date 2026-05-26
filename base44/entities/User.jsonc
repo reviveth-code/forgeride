@@ -1,0 +1,42 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "passenger",
+        "driver",
+        "admin"
+      ],
+      "default": "passenger",
+      "title": "Role"
+    },
+    "phone": {
+      "type": "string",
+      "title": "Phone Number"
+    },
+    "vehicle_type": {
+      "type": "string",
+      "title": "Vehicle Type"
+    },
+    "vehicle_plate": {
+      "type": "string",
+      "title": "Vehicle Plate"
+    },
+    "is_online": {
+      "type": "boolean",
+      "default": false,
+      "title": "Is Online"
+    },
+    "rating": {
+      "type": "number",
+      "title": "Average Rating"
+    },
+    "trips_count": {
+      "type": "number",
+      "default": 0,
+      "title": "Total Trips"
+    }
+  }
+}

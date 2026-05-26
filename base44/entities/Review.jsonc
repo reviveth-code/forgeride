@@ -1,0 +1,30 @@
+{
+  "name": "Review",
+  "type": "object",
+  "properties": {
+    "trip_id": {
+      "type": "string",
+      "title": "Trip ID"
+    },
+    "rating": {
+      "type": "number",
+      "title": "Rating (1-5)"
+    },
+    "comment": {
+      "type": "string",
+      "title": "Comment"
+    },
+    "reviewee_id": {
+      "type": "string",
+      "title": "Reviewee ID"
+    },
+    "reviewee_name": {
+      "type": "string",
+      "title": "Reviewee Name"
+    }
+  },
+  "required": [
+    "trip_id",
+    "rating"
+  ]
+}

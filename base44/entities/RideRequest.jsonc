@@ -1,0 +1,55 @@
+{
+  "name": "RideRequest",
+  "type": "object",
+  "properties": {
+    "pickup_address": {
+      "type": "string",
+      "title": "Pickup Address"
+    },
+    "dropoff_address": {
+      "type": "string",
+      "title": "Dropoff Address"
+    },
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "person",
+        "goods"
+      ],
+      "title": "Request Type"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "matched",
+        "active",
+        "completed",
+        "cancelled"
+      ],
+      "default": "open",
+      "title": "Status"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    },
+    "estimated_distance_km": {
+      "type": "number",
+      "title": "Estimated Distance (km)"
+    },
+    "estimated_duration_min": {
+      "type": "number",
+      "title": "Estimated Duration (min)"
+    },
+    "passenger_name": {
+      "type": "string",
+      "title": "Passenger Name"
+    }
+  },
+  "required": [
+    "pickup_address",
+    "dropoff_address",
+    "request_type"
+  ]
+}
