@@ -2,6 +2,11 @@
 module.exports = {
     darkMode: ["class"],
     content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
+    safelist: [
+      { pattern: /bg-forge-(navy|orange|orange-light|orange-dark)/ },
+      { pattern: /text-forge-(navy|orange|orange-light|orange-dark)/ },
+      { pattern: /border-forge-(navy|orange|orange-light|orange-dark)/ },
+    ],
   theme: {
   	extend: {
   		fontFamily: {
