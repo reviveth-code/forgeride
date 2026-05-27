@@ -16,7 +16,9 @@ export default function PassengerRequests() {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    base44.entities.RideRequest.list('-created_date', 30).then(setRequests);
+    base44.auth.me().then(u => {
+      base44.entities.RideRequest.filter({ created_by: u.email }, '-created_date', 30).then(setRequests);
+    });
   }, []);
 
   const filtered = requests.filter(r => filter === 'all' || r.status === filter);

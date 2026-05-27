@@ -13,7 +13,11 @@ export default function BidSubmitted() {
     const unsub = base44.entities.Bid.subscribe((event) => {
       if (event.id === bidId) {
         setBid(event.data);
-        if (event.data?.status === 'accepted') navigate(`/driver/active-trip/${bidId}`);
+        if (event.data?.status === 'accepted') {
+          base44.entities.Trip.filter({ bid_id: bidId }).then(trips => {
+            if (trips.length > 0) navigate(`/driver/active-trip/${trips[0].id}`);
+          });
+        }
       }
     });
     return unsub;

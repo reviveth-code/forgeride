@@ -8,7 +8,11 @@ export default function PassengerTrack() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    base44.entities.Trip.filter({ status: 'driver_arriving' }, '-created_date', 5).then(setTrips);
+    base44.auth.me().then(u => {
+      base44.entities.Trip.filter({ passenger_id: u.email }, '-created_date', 10).then(trips => {
+        setTrips(trips.filter(t => t.status === 'driver_arriving' || t.status === 'in_progress'));
+      });
+    });
   }, []);
 
   return (

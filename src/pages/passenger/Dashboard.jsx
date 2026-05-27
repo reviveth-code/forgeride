@@ -17,14 +17,19 @@ export default function PassengerDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => navigate('/login'));
-    loadRequests();
-    const unsub = base44.entities.RideRequest.subscribe(() => loadRequests());
+    let userEmail = null;
+    base44.auth.me().then(u => {
+      setUser(u);
+      userEmail = u?.email;
+      loadRequests(u?.email);
+    }).catch(() => navigate('/login'));
+    const unsub = base44.entities.RideRequest.subscribe(() => loadRequests(userEmail));
     return unsub;
   }, []);
 
-  const loadRequests = () => {
-    base44.entities.RideRequest.filter({ status: 'open' }, '-created_date', 10).then(setRequests);
+  const loadRequests = (email) => {
+    if (!email) return;
+    base44.entities.RideRequest.filter({ created_by: email }, '-created_date', 10).then(setRequests);
   };
 
   const greeting = () => {
@@ -67,16 +72,16 @@ export default function PassengerDashboard() {
         <div>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">What Do You Need?</p>
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 text-center cursor-pointer hover:border-forge-orange transition-colors">
+            <Link to="/passenger/new-request" className="bg-white p-5 rounded-2xl border border-gray-100 text-center cursor-pointer hover:border-forge-orange transition-colors">
               <User className="w-8 h-8 text-gray-700 mx-auto mb-2" />
               <p className="font-bold text-sm text-gray-900">Transport</p>
               <p className="text-xs text-gray-400">Move Yourself</p>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 text-center cursor-pointer hover:border-forge-orange transition-colors">
+            </Link>
+            <Link to="/passenger/new-request" className="bg-white p-5 rounded-2xl border border-gray-100 text-center cursor-pointer hover:border-forge-orange transition-colors">
               <Package className="w-8 h-8 text-gray-700 mx-auto mb-2" />
               <p className="font-bold text-sm text-gray-900">Delivery</p>
               <p className="text-xs text-gray-400">Send Goods</p>
-            </div>
+            </Link>
           </div>
         </div>
 
