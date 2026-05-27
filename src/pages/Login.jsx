@@ -18,7 +18,7 @@ export default function Login() {
     try {
       await base44.auth.loginViaEmailPassword(email, password);
       const user = await base44.auth.me();
-      window.location.href = user.role === 'driver' ? '/driver' : '/passenger';
+      window.location.href = user.app_role === 'driver' ? '/driver' : '/passenger';
     } catch (err) {
       setError(err.message || 'Invalid email or password');
     } finally {

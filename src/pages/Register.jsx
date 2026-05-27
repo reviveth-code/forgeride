@@ -50,7 +50,7 @@ export default function Register() {
         }
       }
       if (token) base44.auth.setToken(token);
-      await base44.auth.updateMe({ full_name: fullName, role, vehicle_type: vehicleType });
+      await base44.auth.updateMe({ full_name: fullName, app_role: role, vehicle_type: vehicleType });
       window.location.href = role === 'driver' ? '/driver' : '/passenger';
     } catch (err) {
       setError(err.message || 'Invalid verification code');

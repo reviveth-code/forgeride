@@ -9,7 +9,7 @@ export default function Splash() {
     base44.auth.isAuthenticated().then(async (isAuth) => {
       if (isAuth) {
         const user = await base44.auth.me();
-        navigate(user.role === 'driver' ? '/driver' : '/passenger');
+        navigate(user.app_role === 'driver' ? '/driver' : '/passenger');
       }
     });
   }, []);
