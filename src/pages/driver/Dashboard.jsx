@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Bell, Star, ChevronRight, User, Package } from 'lucide-react';
+import { Bell, Star, User, Package } from 'lucide-react';
 
 export default function DriverDashboard() {
   const [user, setUser] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
   const [requests, setRequests] = useState([]);
+  const [trips, setTrips] = useState([]);
   const navigate = useNavigate();
 
   const loadRequests = () => base44.entities.RideRequest.filter({ status: 'open' }, '-created_date', 5).then(setRequests);
@@ -15,6 +16,7 @@ export default function DriverDashboard() {
     base44.auth.me().then(u => {
       setUser(u);
       setIsOnline(u?.is_online || false);
+      base44.entities.Trip.filter({ driver_id: u.email, status: 'completed' }, '-created_date', 100).then(setTrips);
     }).catch(() => navigate('/login'));
     loadRequests();
     const unsub = base44.entities.RideRequest.subscribe(() => loadRequests());
@@ -68,17 +70,17 @@ export default function DriverDashboard() {
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-xl font-extrabold text-forge-orange">₦8,400</p>
+              <p className="text-xl font-extrabold text-forge-orange">₦{trips.reduce((s,t) => s + (t.agreed_price||0), 0).toLocaleString()}</p>
               <p className="text-xs text-gray-400 font-medium uppercase mt-0.5">Earnings</p>
             </div>
             <div>
-              <p className="text-xl font-extrabold text-gray-900">6</p>
+              <p className="text-xl font-extrabold text-gray-900">{trips.length}</p>
               <p className="text-xs text-gray-400 font-medium uppercase mt-0.5">Trips Done</p>
             </div>
             <div>
               <div className="flex items-center justify-center gap-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <p className="text-xl font-extrabold text-gray-900">4.9</p>
+                <p className="text-xl font-extrabold text-gray-900">{trips.length === 0 ? '—' : (trips.reduce((s,t) => s + (t.rating||5), 0) / trips.length).toFixed(1)}</p>
               </div>
               <p className="text-xs text-gray-400 font-medium uppercase mt-0.5">Rating</p>
             </div>
