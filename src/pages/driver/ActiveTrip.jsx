@@ -55,9 +55,9 @@ export default function ActiveTrip() {
         <div className="bg-forge-navy rounded-2xl px-5 py-3 flex items-center justify-between shadow-xl">
           <div className="flex items-center gap-3">
             <span className="text-white text-xl font-bold">→</span>
-            <span className="text-white text-sm font-medium">Continue on Eko Bridge for 2.3 km</span>
+            <span className="text-white text-sm font-medium truncate">To: {trip?.dropoff_address?.split(',')[0] || '...'}</span>
           </div>
-          <span className="text-forge-orange font-extrabold text-sm">2.3 km</span>
+          <span className="text-forge-orange font-extrabold text-sm">{trip?.distance_km ? `${trip.distance_km} km` : '—'}</span>
         </div>
       </div>
 
@@ -77,13 +77,12 @@ export default function ActiveTrip() {
         {trip ? (
           <>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-extrabold flex-shrink-0">CO</div>
+              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-extrabold flex-shrink-0">
+                {trip?.passenger_name?.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() || 'PA'}
+              </div>
               <div className="flex-1">
-                <p className="font-extrabold text-gray-900">Chidera Okonkwo</p>
-                <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                  <span className="text-xs text-gray-400">4.7 customer</span>
-                </div>
+                <p className="font-extrabold text-gray-900">{trip?.passenger_name || 'Passenger'}</p>
+                <p className="text-xs text-gray-400">{trip?.request_type === 'goods' ? 'Goods Delivery' : 'Person Transport'}</p>
               </div>
               <button className="w-10 h-10 bg-forge-orange rounded-full flex items-center justify-center">
                 <Phone className="w-5 h-5 text-white" />
@@ -96,7 +95,7 @@ export default function ActiveTrip() {
               </div>
               <div className="border-x border-gray-200">
                 <p className="text-xs text-gray-400 font-medium uppercase">ETA</p>
-                <p className="text-sm font-bold text-gray-900">~8 min</p>
+                <p className="text-sm font-bold text-gray-900">~{trip?.duration_min || (trip?.distance_km ? Math.round(trip.distance_km * 3) : '—')} min</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 font-medium uppercase">Earnings</p>

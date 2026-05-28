@@ -7,6 +7,7 @@ export default function BidSubmitted() {
   const { bidId } = useParams();
   const navigate = useNavigate();
   const [bid, setBid] = useState(null);
+  const [request, setRequest] = useState(null);
 
   const goToTrip = (attempts = 0) => {
     base44.entities.Trip.filter({ bid_id: bidId }).then(trips => {
@@ -22,6 +23,7 @@ export default function BidSubmitted() {
     base44.entities.Bid.get(bidId).then(bid => {
       setBid(bid);
       if (bid?.status === 'accepted') goToTrip();
+      if (bid?.request_id) base44.entities.RideRequest.get(bid.request_id).then(setRequest);
     });
 
     const unsub = base44.entities.Bid.subscribe((event) => {
@@ -79,8 +81,8 @@ export default function BidSubmitted() {
                 <div className="w-2 h-2 rounded-full bg-forge-orange" /> From pickup to destination
               </div>
               <div className="flex gap-4 text-xs text-white/40">
-                <span>~{14} km</span>
-                <span>~{22} min drive</span>
+                <span>~{request?.estimated_distance_km || bid?.distance_from_pickup_km || '—'} km</span>
+                <span>~{request?.estimated_duration_min || '—'} min drive</span>
               </div>
             </div>
           )}

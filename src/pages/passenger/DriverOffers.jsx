@@ -23,17 +23,21 @@ export default function DriverOffers() {
     setSelecting(bid.id);
     await base44.entities.Bid.update(bid.id, { status: 'accepted' });
     await base44.entities.RideRequest.update(requestId, { status: 'matched' });
+    const user = await base44.auth.me();
     const trip = await base44.entities.Trip.create({
       request_id: requestId,
       bid_id: bid.id,
       driver_id: bid.driver_id,
       driver_name: bid.driver_name,
+      passenger_id: user.email,
+      passenger_name: request.passenger_name || user.full_name || 'Passenger',
       agreed_price: bid.price,
       status: 'driver_arriving',
       pickup_address: request.pickup_address,
       dropoff_address: request.dropoff_address,
       request_type: request.request_type,
       distance_km: request.estimated_distance_km,
+      duration_min: request.estimated_duration_min,
     });
     navigate(`/passenger/tracking/${trip.id}`);
   };

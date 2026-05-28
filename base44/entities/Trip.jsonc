@@ -22,6 +22,10 @@
       "type": "string",
       "title": "Passenger ID (email)"
     },
+    "passenger_name": {
+      "type": "string",
+      "title": "Passenger Name"
+    },
     "status": {
       "type": "string",
       "enum": [
