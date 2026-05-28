@@ -20,7 +20,8 @@ export default function DriverDashboard() {
     }).catch(() => navigate('/login'));
     loadRequests();
     const unsub = base44.entities.RideRequest.subscribe(() => loadRequests());
-    return unsub;
+    const poll = setInterval(loadRequests, 8000);
+    return () => { unsub(); clearInterval(poll); };
   }, []);
 
   const toggleOnline = async () => {

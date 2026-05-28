@@ -12,7 +12,8 @@ export default function NearbyRequests() {
   useEffect(() => {
     load();
     const unsub = base44.entities.RideRequest.subscribe(() => load());
-    return unsub;
+    const poll = setInterval(load, 8000);
+    return () => { unsub(); clearInterval(poll); };
   }, []);
 
   const filtered = requests.filter(r => filter === 'all' || r.request_type === filter);
