@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Phone, Star } from 'lucide-react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import MapViewUpdater from '@/components/MapViewUpdater';
 import '@/utils/leaflet';
 
 export default function TripTracking() {
@@ -35,10 +36,10 @@ export default function TripTracking() {
 
       {/* Map */}
       <div className="flex-1" style={{ minHeight: '320px' }}>
-        <MapContainer center={[6.5244, 3.3792]} zoom={13} style={{ height: '100%', width: '100%', minHeight: '320px' }} zoomControl={false} attributionControl={false}>
+        <MapContainer center={[6.5244, 3.3792]} zoom={14} style={{ height: '100%', width: '100%', minHeight: '320px' }} zoomControl={false} attributionControl={false}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <Marker position={[6.5244, 3.3792]} />
-          <Marker position={[6.5344, 3.3892]} />
+          {trip?.driver_lat && <Marker position={[trip.driver_lat, trip.driver_lng]} />}
+          {trip?.driver_lat && <MapViewUpdater center={[trip.driver_lat, trip.driver_lng]} zoom={15} />}
         </MapContainer>
       </div>
 

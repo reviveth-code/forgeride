@@ -1,34 +1,56 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { X, MapPin, User, Package, Loader2 } from 'lucide-react';
+import { X, User, Package, Loader2 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import '@/utils/leaflet';
+import LocationSearchInput from '@/components/LocationSearchInput';
+import MapViewUpdater from '@/components/MapViewUpdater';
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return +(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1);
+}
 
 export default function NewRequest() {
   const navigate = useNavigate();
-  const [pickup, setPickup] = useState('');
-  const [dropoff, setDropoff] = useState('');
+  const [pickupLoc, setPickupLoc] = useState(null);
+  const [dropoffLoc, setDropoffLoc] = useState(null);
   const [type, setType] = useState('person');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    base44.auth.me().then(setUser);
-  }, []);
+  useEffect(() => { base44.auth.me().then(setUser); }, []);
+
+  const distanceKm = pickupLoc && dropoffLoc
+    ? haversine(pickupLoc.lat, pickupLoc.lng, dropoffLoc.lat, dropoffLoc.lng)
+    : null;
+  const durationMin = distanceKm ? Math.round(distanceKm * 3) : null;
+
+  const mapCenter = dropoffLoc && pickupLoc
+    ? [(pickupLoc.lat + dropoffLoc.lat) / 2, (pickupLoc.lng + dropoffLoc.lng) / 2]
+    : pickupLoc ? [pickupLoc.lat, pickupLoc.lng] : null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!pickupLoc || !dropoffLoc) return;
     setLoading(true);
     const req = await base44.entities.RideRequest.create({
-      pickup_address: pickup,
-      dropoff_address: dropoff,
+      pickup_address: pickupLoc.address,
+      dropoff_address: dropoffLoc.address,
+      pickup_lat: pickupLoc.lat,
+      pickup_lng: pickupLoc.lng,
+      dropoff_lat: dropoffLoc.lat,
+      dropoff_lng: dropoffLoc.lng,
       request_type: type,
       notes,
       status: 'open',
-      estimated_distance_km: 14,
-      estimated_duration_min: 22,
+      estimated_distance_km: distanceKm,
+      estimated_duration_min: durationMin,
       passenger_name: user?.full_name || '',
     });
     navigate(`/passenger/waiting/${req.id}`);
@@ -42,28 +64,39 @@ export default function NewRequest() {
         <div className="w-6" />
       </div>
 
-      {/* Map */}
       <div className="h-52">
         <MapContainer center={[6.5244, 3.3792]} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false} attributionControl={false}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <Marker position={[6.5244, 3.3792]} />
+          {pickupLoc && <Marker position={[pickupLoc.lat, pickupLoc.lng]} />}
+          {dropoffLoc && <Marker position={[dropoffLoc.lat, dropoffLoc.lng]} />}
+          {mapCenter && <MapViewUpdater center={mapCenter} zoom={dropoffLoc ? 12 : 14} />}
         </MapContainer>
       </div>
 
       <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4 flex-1 overflow-auto pb-8">
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Route Details</p>
 
-        <div className="relative">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-forge-orange" />
-          <input placeholder="Pickup location" value={pickup} onChange={(e) => setPickup(e.target.value)}
-            className="w-full pl-10 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange" required />
-        </div>
+        <LocationSearchInput
+          placeholder="Pickup location"
+          value={pickupLoc}
+          onChange={setPickupLoc}
+          dotColor="bg-forge-orange"
+        />
 
-        <div className="relative">
-          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input placeholder="Where are you going?" value={dropoff} onChange={(e) => setDropoff(e.target.value)}
-            className="w-full pl-10 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange" required />
-        </div>
+        <LocationSearchInput
+          placeholder="Where are you going?"
+          value={dropoffLoc}
+          onChange={setDropoffLoc}
+          dotColor="bg-gray-400"
+        />
+
+        {distanceKm && (
+          <div className="flex gap-3 text-sm bg-forge-orange/10 rounded-2xl px-4 py-3">
+            <span className="text-forge-orange font-bold">~{distanceKm} km</span>
+            <span className="text-gray-400">•</span>
+            <span className="text-gray-600 font-medium">~{durationMin} min drive</span>
+          </div>
+        )}
 
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest pt-1">Request Type</p>
         <div className="grid grid-cols-2 gap-3">
@@ -84,7 +117,7 @@ export default function NewRequest() {
         <textarea placeholder="Any special instructions for the driver" value={notes} onChange={(e) => setNotes(e.target.value)}
           rows={3} className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange resize-none" />
 
-        <button type="submit" disabled={loading}
+        <button type="submit" disabled={loading || !pickupLoc || !dropoffLoc}
           className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl text-base disabled:opacity-60 flex items-center justify-center">
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Post Request'}
         </button>

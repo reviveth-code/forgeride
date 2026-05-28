@@ -10,6 +10,22 @@
       "type": "string",
       "title": "Dropoff Address"
     },
+    "pickup_lat": {
+      "type": "number",
+      "title": "Pickup Latitude"
+    },
+    "pickup_lng": {
+      "type": "number",
+      "title": "Pickup Longitude"
+    },
+    "dropoff_lat": {
+      "type": "number",
+      "title": "Dropoff Latitude"
+    },
+    "dropoff_lng": {
+      "type": "number",
+      "title": "Dropoff Longitude"
+    },
     "request_type": {
       "type": "string",
       "enum": [

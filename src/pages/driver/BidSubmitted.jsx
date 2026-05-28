@@ -8,19 +8,37 @@ export default function BidSubmitted() {
   const navigate = useNavigate();
   const [bid, setBid] = useState(null);
 
+  const goToTrip = (attempts = 0) => {
+    base44.entities.Trip.filter({ bid_id: bidId }).then(trips => {
+      if (trips.length > 0) {
+        navigate(`/driver/active-trip/${trips[0].id}`);
+      } else if (attempts < 8) {
+        setTimeout(() => goToTrip(attempts + 1), 1500);
+      }
+    });
+  };
+
   useEffect(() => {
-    base44.entities.Bid.get(bidId).then(setBid);
+    base44.entities.Bid.get(bidId).then(bid => {
+      setBid(bid);
+      if (bid?.status === 'accepted') goToTrip();
+    });
+
     const unsub = base44.entities.Bid.subscribe((event) => {
       if (event.id === bidId) {
         setBid(event.data);
-        if (event.data?.status === 'accepted') {
-          base44.entities.Trip.filter({ bid_id: bidId }).then(trips => {
-            if (trips.length > 0) navigate(`/driver/active-trip/${trips[0].id}`);
-          });
-        }
+        if (event.data?.status === 'accepted') goToTrip();
       }
     });
-    return unsub;
+
+    // Fallback polling every 4 seconds
+    const poll = setInterval(async () => {
+      const bid = await base44.entities.Bid.get(bidId);
+      setBid(bid);
+      if (bid?.status === 'accepted') { clearInterval(poll); goToTrip(); }
+    }, 4000);
+
+    return () => { unsub(); clearInterval(poll); };
   }, [bidId]);
 
   const cancelBid = async () => {

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Menu, Phone, Star, AlertTriangle, Flag, Loader2 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import MapViewUpdater from '@/components/MapViewUpdater';
 import '@/utils/leaflet';
 
 export default function ActiveTrip() {
@@ -10,9 +11,21 @@ export default function ActiveTrip() {
   const navigate = useNavigate();
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [driverPos, setDriverPos] = useState(null);
 
   useEffect(() => {
     base44.entities.Trip.get(tripId).then(setTrip);
+
+    const watchId = navigator.geolocation?.watchPosition(
+      ({ coords }) => {
+        const pos = [coords.latitude, coords.longitude];
+        setDriverPos(pos);
+        base44.entities.Trip.update(tripId, { driver_lat: coords.latitude, driver_lng: coords.longitude });
+      },
+      null,
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+    );
+    return () => navigator.geolocation?.clearWatch(watchId);
   }, [tripId]);
 
   const endTrip = async () => {
@@ -54,8 +67,8 @@ export default function ActiveTrip() {
           style={{ height: '100%', width: '100%', minHeight: '65vh' }}
           zoomControl={false} attributionControl={false}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <Marker position={[6.5244, 3.3792]} />
-          <Marker position={[6.5344, 3.3892]} />
+          {driverPos && <Marker position={driverPos} />}
+          {driverPos && <MapViewUpdater center={driverPos} zoom={15} />}
         </MapContainer>
       </div>
 

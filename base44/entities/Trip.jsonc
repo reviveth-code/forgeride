@@ -60,6 +60,14 @@
     "duration_min": {
       "type": "number",
       "title": "Duration (min)"
+    },
+    "driver_lat": {
+      "type": "number",
+      "title": "Driver Latitude (live)"
+    },
+    "driver_lng": {
+      "type": "number",
+      "title": "Driver Longitude (live)"
     }
   },
   "required": [
