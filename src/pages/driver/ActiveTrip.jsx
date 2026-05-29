@@ -78,10 +78,15 @@ export default function ActiveTrip() {
           <>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-extrabold flex-shrink-0">
-                {trip?.passenger_name?.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() || 'PA'}
+                {(trip?.is_for_someone_else ? trip?.recipient_name : trip?.passenger_name)?.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() || 'PA'}
               </div>
               <div className="flex-1">
-                <p className="font-extrabold text-gray-900">{trip?.passenger_name || 'Passenger'}</p>
+                <p className="font-extrabold text-gray-900">
+                  {trip?.is_for_someone_else ? trip?.recipient_name : (trip?.passenger_name || 'Passenger')}
+                </p>
+                {trip?.is_for_someone_else && (
+                  <p className="text-xs text-forge-orange font-semibold">Booked by {trip?.passenger_name}</p>
+                )}
                 <p className="text-xs text-gray-400">{trip?.request_type === 'goods' ? 'Goods Delivery' : 'Person Transport'}</p>
               </div>
               <button className="w-10 h-10 bg-forge-orange rounded-full flex items-center justify-center">

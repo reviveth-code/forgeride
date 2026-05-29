@@ -26,6 +26,19 @@
       "type": "string",
       "title": "Passenger Name"
     },
+    "is_for_someone_else": {
+      "type": "boolean",
+      "title": "Booked for Someone Else",
+      "default": false
+    },
+    "recipient_name": {
+      "type": "string",
+      "title": "Recipient Name"
+    },
+    "recipient_phone": {
+      "type": "string",
+      "title": "Recipient Phone"
+    },
     "status": {
       "type": "string",
       "enum": [

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { X, User, Package, Loader2 } from 'lucide-react';
+import { X, User, Package, Loader2, Users } from 'lucide-react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import '@/utils/leaflet';
 import LocationSearchInput from '@/components/LocationSearchInput';
@@ -23,6 +23,9 @@ export default function NewRequest() {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [forSomeoneElse, setForSomeoneElse] = useState(false);
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientPhone, setRecipientPhone] = useState('');
 
   useEffect(() => { base44.auth.me().then(setUser); }, []);
 
@@ -52,6 +55,9 @@ export default function NewRequest() {
       estimated_distance_km: distanceKm,
       estimated_duration_min: durationMin,
       passenger_name: user?.full_name || '',
+      is_for_someone_else: forSomeoneElse,
+      recipient_name: forSomeoneElse ? recipientName : '',
+      recipient_phone: forSomeoneElse ? recipientPhone : '',
     });
     navigate(`/passenger/waiting/${req.id}`);
   };
@@ -112,6 +118,46 @@ export default function NewRequest() {
             </button>
           ))}
         </div>
+
+        {/* Book for someone else */}
+        <button type="button" onClick={() => setForSomeoneElse(!forSomeoneElse)}
+          className={`w-full flex items-center gap-3 py-4 px-4 rounded-2xl border-2 transition-colors ${
+            forSomeoneElse ? 'border-forge-orange bg-forge-orange/5' : 'border-gray-200'
+          }`}>
+          <Users className={`w-5 h-5 ${forSomeoneElse ? 'text-forge-orange' : 'text-gray-400'}`} />
+          <div className="text-left flex-1">
+            <p className={`font-bold text-sm ${forSomeoneElse ? 'text-forge-orange' : 'text-gray-700'}`}>Book for someone else</p>
+            <p className="text-xs text-gray-400">A family member, friend or colleague</p>
+          </div>
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+            forSomeoneElse ? 'border-forge-orange bg-forge-orange' : 'border-gray-300'
+          }`}>
+            {forSomeoneElse && <div className="w-2 h-2 rounded-full bg-white" />}
+          </div>
+        </button>
+
+        {forSomeoneElse && (
+          <div className="space-y-3 bg-forge-orange/5 rounded-2xl p-4">
+            <p className="text-xs font-bold text-forge-orange uppercase tracking-widest">Recipient Details</p>
+            <input
+              type="text"
+              placeholder="Recipient's full name"
+              value={recipientName}
+              onChange={(e) => setRecipientName(e.target.value)}
+              required={forSomeoneElse}
+              className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange bg-white"
+            />
+            <input
+              type="tel"
+              placeholder="Recipient's phone number"
+              value={recipientPhone}
+              onChange={(e) => setRecipientPhone(e.target.value)}
+              required={forSomeoneElse}
+              className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange bg-white"
+            />
+            <p className="text-xs text-gray-400">The driver will see this person's name and can call them directly.</p>
+          </div>
+        )}
 
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest pt-1">Notes — Optional</p>
         <textarea placeholder="Any special instructions for the driver" value={notes} onChange={(e) => setNotes(e.target.value)}
