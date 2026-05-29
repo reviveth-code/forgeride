@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Phone, Star } from 'lucide-react';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
+import SmoothDriverMarker from '@/components/SmoothDriverMarker';
 import MapViewUpdater from '@/components/MapViewUpdater';
 import '@/utils/leaflet';
 
@@ -12,14 +13,24 @@ export default function TripTracking() {
   const [trip, setTrip] = useState(null);
 
   useEffect(() => {
-    base44.entities.Trip.get(tripId).then(setTrip);
+    const loadTrip = () => base44.entities.Trip.get(tripId).then(t => {
+      setTrip(t);
+      if (t?.status === 'completed') navigate(`/passenger/trip-complete/${tripId}`);
+    });
+
+    loadTrip();
+
     const unsub = base44.entities.Trip.subscribe((event) => {
       if (event.id === tripId) {
         setTrip(event.data);
         if (event.data?.status === 'completed') navigate(`/passenger/trip-complete/${tripId}`);
       }
     });
-    return unsub;
+
+    // Poll every 3s for cross-user real-time driver location
+    const poll = setInterval(loadTrip, 3000);
+
+    return () => { unsub(); clearInterval(poll); };
   }, [tripId]);
 
   const initials = (name) => name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'DR';
@@ -38,7 +49,7 @@ export default function TripTracking() {
       <div className="flex-1" style={{ minHeight: '320px' }}>
         <MapContainer center={[6.5244, 3.3792]} zoom={14} style={{ height: '100%', width: '100%', minHeight: '320px' }} zoomControl={false} attributionControl={false}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          {trip?.driver_lat && <Marker position={[trip.driver_lat, trip.driver_lng]} />}
+          {trip?.driver_lat && <SmoothDriverMarker position={[trip.driver_lat, trip.driver_lng]} />}
           {trip?.driver_lat && <MapViewUpdater center={[trip.driver_lat, trip.driver_lng]} zoom={15} />}
         </MapContainer>
       </div>
