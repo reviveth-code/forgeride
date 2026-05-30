@@ -18,6 +18,7 @@ import PassengerTripComplete from './pages/passenger/TripComplete';
 import PassengerRequests from './pages/passenger/Requests';
 import PassengerTrack from './pages/passenger/Track';
 import PassengerProfile from './pages/passenger/Profile';
+import TripHistory from './pages/passenger/TripHistory';
 import DriverDashboard from './pages/driver/Dashboard';
 import NearbyRequests from './pages/driver/NearbyRequests';
 import PlaceBid from './pages/driver/PlaceBid';
@@ -69,6 +70,7 @@ const AuthenticatedApp = () => {
       <Route path="/passenger/offers/:requestId" element={<DriverOffers />} />
       <Route path="/passenger/tracking/:tripId" element={<TripTracking />} />
       <Route path="/passenger/trip-complete/:tripId" element={<PassengerTripComplete />} />
+      <Route path="/passenger/trip-history" element={<TripHistory />} />
 
       {/* Passenger layout (bottom nav) */}
       <Route element={<PassengerLayout />}>
