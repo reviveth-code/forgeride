@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { LogOut, Star, Shield, ChevronRight, Car, TrendingUp, Briefcase } from 'lucide-react';
+import { LogOut, Star, Shield, ChevronRight, Car, TrendingUp, Briefcase, Edit2 } from 'lucide-react';
 import VehicleDetailsSheet from '@/components/driver/VehicleDetailsSheet';
+import EditDriverProfileSheet from '@/components/driver/EditDriverProfileSheet';
 
 export default function DriverProfile() {
   const [user, setUser] = useState(null);
   const [showLogout, setShowLogout] = useState(false);
   const [showVehicle, setShowVehicle] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   useEffect(() => { base44.auth.me().then(setUser); }, []);
 
@@ -33,11 +35,22 @@ export default function DriverProfile() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-forge-navy pt-12 pb-6 px-5 text-center">
-        <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center text-white font-extrabold text-3xl mx-auto mb-3">
-          {user?.full_name?.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() || 'DR'}
+        <div className="relative inline-block mb-3">
+          <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-700 flex items-center justify-center">
+            {user?.profile_photo
+              ? <img src={user.profile_photo} alt="Profile" className="w-full h-full object-cover" />
+              : <span className="text-white font-extrabold text-3xl">
+                  {(user?.display_name || user?.full_name)?.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() || 'DR'}
+                </span>
+            }
+          </div>
+          <button onClick={() => setShowEditProfile(true)}
+            className="absolute -bottom-1 -right-1 w-8 h-8 bg-forge-orange rounded-full flex items-center justify-center shadow-lg">
+            <Edit2 className="w-3.5 h-3.5 text-white" />
+          </button>
         </div>
-        <h1 className="text-xl font-bold text-white">{user?.full_name || 'Driver'}</h1>
-        <p className="text-white/40 text-sm mt-1">{user?.email}</p>
+        <h1 className="text-xl font-bold text-white">{user?.display_name || user?.full_name || 'Driver'}</h1>
+        <p className="text-white/40 text-sm mt-1">{user?.phone || user?.email}</p>
         <p className="text-white/50 text-xs mt-1 capitalize">{[user?.vehicle_type, user?.vehicle_plate].filter(Boolean).join(' • ') || 'No vehicle set'}</p>
       </div>
 
@@ -105,6 +118,14 @@ export default function DriverProfile() {
           <span className="font-semibold text-red-500 text-sm flex-1 text-left">Log Out</span>
         </button>
       </div>
+
+      {showEditProfile && user && (
+        <EditDriverProfileSheet
+          user={user}
+          onClose={() => setShowEditProfile(false)}
+          onSaved={(data) => setUser(u => ({ ...u, ...data }))}
+        />
+      )}
 
       {showVehicle && user && (
         <VehicleDetailsSheet

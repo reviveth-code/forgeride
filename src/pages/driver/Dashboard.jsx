@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Bell, Star, User, Package } from 'lucide-react';
+import { Bell, Star, User, Package, MapPin } from 'lucide-react';
+import useCurrentLocation from '@/hooks/useCurrentLocation';
 
 export default function DriverDashboard() {
   const [user, setUser] = useState(null);
@@ -9,6 +10,7 @@ export default function DriverDashboard() {
   const [requests, setRequests] = useState([]);
   const [trips, setTrips] = useState([]);
   const navigate = useNavigate();
+  const { address: currentAddress, loading: locationLoading } = useCurrentLocation();
 
   const loadRequests = () => base44.entities.RideRequest.filter({ status: 'open' }, '-created_date', 5).then(setRequests);
 
@@ -35,8 +37,11 @@ export default function DriverDashboard() {
       <div className="bg-white px-5 pt-8 pb-5">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-forge-navy rounded-full flex items-center justify-center text-white font-extrabold">
-              {user?.full_name?.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() || 'DR'}
+            <div className="w-12 h-12 bg-forge-navy rounded-full overflow-hidden flex items-center justify-center text-white font-extrabold flex-shrink-0">
+              {user?.profile_photo
+                ? <img src={user.profile_photo} alt="Profile" className="w-full h-full object-cover" />
+                : (user?.full_name?.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() || 'DR')
+              }
             </div>
             <div>
               <p className="text-xs text-gray-400">Welcome back,</p>
@@ -48,6 +53,12 @@ export default function DriverDashboard() {
           </button>
         </div>
 
+        <div className="flex items-center gap-2 bg-gray-50 rounded-2xl px-3 py-2 mb-2">
+          <MapPin className="w-4 h-4 text-forge-orange flex-shrink-0" />
+          <span className="text-xs text-gray-500 truncate">
+            {locationLoading ? 'Getting location…' : (currentAddress || 'Location unavailable')}
+          </span>
+        </div>
         <div className="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3">
           <div className="flex items-center gap-2">
             <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />

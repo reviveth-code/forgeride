@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import useCurrentLocation from '@/hooks/useCurrentLocation';
 import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Bell, MapPin, User, Package, ChevronRight, Plus } from 'lucide-react';
@@ -15,6 +16,7 @@ export default function PassengerDashboard() {
   const [user, setUser] = useState(null);
   const [requests, setRequests] = useState([]);
   const navigate = useNavigate();
+  const { address: currentAddress, loading: locationLoading } = useCurrentLocation();
 
   useEffect(() => {
     let userEmail = null;
@@ -58,12 +60,11 @@ export default function PassengerDashboard() {
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between bg-forge-orange-light rounded-2xl px-4 py-3">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-forge-orange" />
-            <span className="text-sm font-semibold text-forge-orange">Current Location</span>
-          </div>
-          <button className="text-sm text-forge-orange font-bold">Change</button>
+        <div className="flex items-center gap-2 bg-forge-orange-light rounded-2xl px-4 py-3">
+          <MapPin className="w-5 h-5 text-forge-orange flex-shrink-0" />
+          <span className="text-sm font-semibold text-forge-orange truncate">
+            {locationLoading ? 'Getting location…' : (currentAddress || 'Location unavailable')}
+          </span>
         </div>
       </div>
 
