@@ -1,7 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, User, Package, Loader2 } from 'lucide-react';
+import { ArrowLeft, User, Package, Loader2, Clock, AlertCircle } from 'lucide-react';
+
+function haversine(lat1, lng1, lat2, lng2) {
+  if (!lat1 || !lng1 || !lat2 || !lng2) return null;
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLng = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return +(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
+}
+
+const REQUEST_TTL_MS = 2 * 60 * 1000;
 
 const PRESETS = [800, 1000, 1200, 1500, 2000];
 
@@ -13,13 +24,57 @@ export default function PlaceBid() {
   const [price, setPrice] = useState(1500);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [driverPos, setDriverPos] = useState(null);
+  const [secsLeft, setSecsLeft] = useState(120);
+  const [existingBid, setExistingBid] = useState(null);
+  const [competitorCount, setCompetitorCount] = useState(0);
 
   useEffect(() => {
     base44.entities.RideRequest.get(requestId).then(setRequest);
-    base44.auth.me().then(setUser);
+    base44.auth.me().then(async (u) => {
+      setUser(u);
+      if (u?.email) {
+        // Check for existing bid by this driver on this request
+        const existing = await base44.entities.Bid.filter({ request_id: requestId, driver_id: u.email });
+        const active = existing.find(b => b.status === 'pending' || b.status === 'accepted');
+        if (active) setExistingBid(active);
+        // Count competitors
+        const allBids = await base44.entities.Bid.filter({ request_id: requestId, status: 'pending' });
+        setCompetitorCount(allBids.filter(b => b.driver_id !== u.email).length);
+      }
+    });
+
+    // Real-time driver GPS
+    const watchId = navigator.geolocation?.watchPosition(
+      ({ coords }) => setDriverPos({ lat: coords.latitude, lng: coords.longitude }),
+      null,
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+    );
+
+    return () => navigator.geolocation?.clearWatch(watchId);
   }, [requestId]);
 
+  // Countdown timer based on request created_date
+  useEffect(() => {
+    if (!request) return;
+    const tick = () => {
+      const elapsed = Date.now() - new Date(request.created_date).getTime();
+      const secs = Math.max(0, Math.floor((REQUEST_TTL_MS - elapsed) / 1000));
+      setSecsLeft(secs);
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [request]);
+
+  const distFromPickup = haversine(driverPos?.lat, driverPos?.lng, request?.pickup_lat, request?.pickup_lng);
+  const etaMin = distFromPickup ? Math.max(1, Math.round(distFromPickup * 3)) : 4;
+  const isExpired = secsLeft === 0;
+  const mm = String(Math.floor(secsLeft / 60)).padStart(2, '0');
+  const ss = String(secsLeft % 60).padStart(2, '0');
+
   const handleSubmit = async () => {
+    if (existingBid) { navigate(`/driver/bid-submitted/${existingBid.id}`); return; }
     setLoading(true);
     const bid = await base44.entities.Bid.create({
       request_id: requestId,
@@ -30,8 +85,8 @@ export default function PlaceBid() {
       price,
       message,
       status: 'pending',
-      eta_min: 4,
-      distance_from_pickup_km: 1.2,
+      eta_min: etaMin,
+      distance_from_pickup_km: distFromPickup || 1.0,
     });
     navigate(`/driver/bid-submitted/${bid.id}`);
   };
@@ -41,6 +96,30 @@ export default function PlaceBid() {
       <div className="flex items-center gap-4 px-5 py-4 bg-white border-b border-gray-100">
         <button onClick={() => navigate(-1)}><ArrowLeft className="w-6 h-6 text-gray-700" /></button>
         <h1 className="text-lg font-bold text-gray-900">Place Your Bid</h1>
+      </div>
+
+      {/* Existing bid warning */}
+      {existingBid && (
+        <div className="mx-5 mt-3 bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-3 flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-bold text-yellow-700">You already placed a bid</p>
+            <p className="text-xs text-yellow-600">You have a pending bid of ₦{existingBid.price?.toLocaleString()} for this request.</p>
+          </div>
+          <button onClick={() => navigate(`/driver/bid-submitted/${existingBid.id}`)}
+            className="text-xs font-bold text-forge-orange whitespace-nowrap">View →</button>
+        </div>
+      )}
+
+      {/* Expiry countdown */}
+      <div className={`mx-5 mt-3 rounded-2xl px-4 py-3 flex items-center gap-3 ${isExpired ? 'bg-red-50 border border-red-200' : secsLeft < 30 ? 'bg-red-50 border border-red-200' : 'bg-forge-orange/10 border border-forge-orange/20'}`}>
+        <Clock className={`w-5 h-5 flex-shrink-0 ${isExpired || secsLeft < 30 ? 'text-red-500' : 'text-forge-orange'}`} />
+        {isExpired
+          ? <p className="text-sm font-bold text-red-600">This request has expired. You can no longer bid.</p>
+          : <p className={`text-sm font-bold ${secsLeft < 30 ? 'text-red-600' : 'text-forge-orange'}`}>
+              Request expires in <span className="font-extrabold text-lg">{mm}:{ss}</span>
+            </p>
+        }
       </div>
 
       <div className="px-5 py-4 space-y-4 pb-8">
@@ -72,7 +151,13 @@ export default function PlaceBid() {
                 <p className="text-xs text-gray-400">Drive Time</p>
               </div>
               <div>
-                <p className="font-extrabold text-gray-900 text-sm">2 bids</p>
+                <p className="font-extrabold text-gray-900 text-sm">{distFromPickup ? `${distFromPickup} km` : 'Getting GPS…'}</p>
+                <p className="text-xs text-gray-400">You → Pickup</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 text-center border-t border-gray-100 pt-4">
+              <div>
+                <p className="font-extrabold text-forge-orange text-sm">{competitorCount} bid{competitorCount !== 1 ? 's' : ''}</p>
                 <p className="text-xs text-gray-400">Competition</p>
               </div>
             </div>
@@ -107,7 +192,7 @@ export default function PlaceBid() {
           <p className="text-right text-xs text-gray-300 mt-1">{message.length}/120</p>
         </div>
 
-        <button onClick={handleSubmit} disabled={loading || !request}
+        <button onClick={handleSubmit} disabled={loading || !request || isExpired || !!existingBid}
           className="w-full bg-forge-orange text-white font-extrabold py-4 rounded-2xl text-base disabled:opacity-60 flex items-center justify-center shadow-lg">
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : `✓ Submit Bid — ₦${price.toLocaleString()}`}
         </button>
