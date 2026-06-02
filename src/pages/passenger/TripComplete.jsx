@@ -25,6 +25,13 @@ export default function PassengerTripComplete() {
       reviewee_id: trip?.driver_id,
       reviewee_name: trip?.driver_name,
     });
+    // Recompute driver's average rating from all their reviews and save it
+    const allReviews = await base44.entities.Review.filter({ reviewee_id: trip?.driver_id });
+    if (allReviews.length > 0) {
+      const avg = +(allReviews.reduce((s, r) => s + (r.rating || 0), 0) / allReviews.length).toFixed(1);
+      // Store on the trip bid so DriverOffers can surface live rating going forward
+      if (trip?.bid_id) await base44.entities.Bid.update(trip.bid_id, { driver_rating: avg }).catch(() => {});
+    }
     navigate('/passenger');
   };
 

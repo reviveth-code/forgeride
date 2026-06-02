@@ -1,7 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Phone, Star } from 'lucide-react';
+
+function haversine(lat1, lng1, lat2, lng2) {
+  if (lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null;
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLng = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return +(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
+}
 import { MapContainer, TileLayer } from 'react-leaflet';
 import SmoothDriverMarker from '@/components/SmoothDriverMarker';
 import MapViewUpdater from '@/components/MapViewUpdater';
@@ -34,6 +43,17 @@ export default function TripTracking() {
   }, [tripId]);
 
   const initials = (name) => name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'DR';
+
+  // Real-time distance: driver → passenger pickup (arriving) or driver → dropoff (in progress)
+  const liveDistKm = useMemo(() => {
+    if (!trip?.driver_lat || !trip?.driver_lng) return null;
+    if (trip.status === 'in_progress') {
+      return haversine(trip.driver_lat, trip.driver_lng, trip.dropoff_lat, trip.dropoff_lng);
+    }
+    return haversine(trip.driver_lat, trip.driver_lng, trip.pickup_lat, trip.pickup_lng);
+  }, [trip?.driver_lat, trip?.driver_lng, trip?.status]);
+
+  const liveEtaMin = liveDistKm != null ? Math.max(1, Math.round(liveDistKm * 3)) : null;
 
   return (
     <div className="min-h-screen flex flex-col max-w-md mx-auto">
@@ -73,20 +93,20 @@ export default function TripTracking() {
             </div>
             <div className="grid grid-cols-3 gap-4 text-center mb-4">
               <div>
-                <p className="text-lg font-extrabold text-gray-900">~6 min</p>
-                <p className="text-xs text-gray-400 font-medium uppercase">Arriving In</p>
+                <p className="text-lg font-extrabold text-gray-900">{liveEtaMin != null ? `~${liveEtaMin} min` : '—'}</p>
+                <p className="text-xs text-gray-400 font-medium uppercase">ETA</p>
               </div>
               <div>
-                <p className="text-lg font-extrabold text-gray-900">{trip.distance_km} km</p>
-                <p className="text-xs text-gray-400 font-medium uppercase">Remaining</p>
+                <p className="text-lg font-extrabold text-gray-900">{liveDistKm != null ? `${liveDistKm} km` : '—'}</p>
+                <p className="text-xs text-gray-400 font-medium uppercase">{trip.status === 'in_progress' ? 'To Dropoff' : 'To Pickup'}</p>
               </div>
               <div>
                 <p className="text-lg font-extrabold text-forge-orange">₦{trip.agreed_price?.toLocaleString()}</p>
                 <p className="text-xs text-gray-400 font-medium uppercase">Agreed Price</p>
               </div>
             </div>
-            <div className="bg-forge-orange text-white text-center py-3 rounded-2xl font-bold text-sm">
-              ● Driver Arriving
+            <div className={`text-white text-center py-3 rounded-2xl font-bold text-sm ${trip.status === 'in_progress' ? 'bg-forge-navy' : 'bg-forge-orange'}`}>
+              ● {trip.status === 'in_progress' ? 'Trip In Progress' : 'Driver Arriving'}
             </div>
           </>
         ) : (

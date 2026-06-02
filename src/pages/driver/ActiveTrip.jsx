@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Menu, Phone, Star, AlertTriangle, Flag, Loader2 } from 'lucide-react';
@@ -12,6 +12,24 @@ export default function ActiveTrip() {
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(false);
   const [driverPos, setDriverPos] = useState(null);
+
+  // Live distance from driver to target (pickup while arriving, dropoff during trip)
+  const liveDistKm = useMemo(() => {
+    if (!driverPos) return null;
+    if (trip?.status === 'in_progress' && trip?.dropoff_lat) {
+      const R = 6371, dLat = (trip.dropoff_lat-driverPos[0])*Math.PI/180, dLng = (trip.dropoff_lng-driverPos[1])*Math.PI/180;
+      const a = Math.sin(dLat/2)**2+Math.cos(driverPos[0]*Math.PI/180)*Math.cos(trip.dropoff_lat*Math.PI/180)*Math.sin(dLng/2)**2;
+      return +(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
+    }
+    if (trip?.pickup_lat) {
+      const R = 6371, dLat = (trip.pickup_lat-driverPos[0])*Math.PI/180, dLng = (trip.pickup_lng-driverPos[1])*Math.PI/180;
+      const a = Math.sin(dLat/2)**2+Math.cos(driverPos[0]*Math.PI/180)*Math.cos(trip.pickup_lat*Math.PI/180)*Math.sin(dLng/2)**2;
+      return +(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
+    }
+    return null;
+  }, [driverPos, trip?.status, trip?.pickup_lat, trip?.dropoff_lat]);
+
+  const liveEtaMin = liveDistKm != null ? Math.max(1, Math.round(liveDistKm * 3)) : null;
 
   useEffect(() => {
     base44.entities.Trip.get(tripId).then(setTrip);
@@ -93,18 +111,18 @@ export default function ActiveTrip() {
                 <Phone className="w-5 h-5 text-white" />
               </button>
             </div>
-            <div className="grid grid-cols-3 text-center mb-4 bg-gray-50 rounded-2xl py-3">
-              <div>
-                <p className="text-xs text-gray-400 font-medium uppercase">Destination</p>
-                <p className="text-sm font-bold text-gray-900 truncate px-2">{trip.dropoff_address?.split(',')[0]}</p>
-              </div>
-              <div className="border-x border-gray-200">
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-gray-50 rounded-2xl py-3 text-center">
                 <p className="text-xs text-gray-400 font-medium uppercase">ETA</p>
-                <p className="text-sm font-bold text-gray-900">~{trip?.duration_min || (trip?.distance_km ? Math.round(trip.distance_km * 3) : '—')} min</p>
+                <p className="text-sm font-bold text-gray-900">{liveEtaMin != null ? `~${liveEtaMin} min` : '—'}</p>
               </div>
-              <div>
+              <div className="bg-gray-50 rounded-2xl py-3 text-center">
+                <p className="text-xs text-gray-400 font-medium uppercase">{trip?.status === 'in_progress' ? 'To Dropoff' : 'To Pickup'}</p>
+                <p className="text-sm font-bold text-gray-900">{liveDistKm != null ? `${liveDistKm} km` : '—'}</p>
+              </div>
+              <div className="col-span-2 bg-forge-orange/10 rounded-2xl py-3 text-center">
                 <p className="text-xs text-gray-400 font-medium uppercase">Earnings</p>
-                <p className="text-sm font-bold text-forge-orange">₦{trip.agreed_price?.toLocaleString()}</p>
+                <p className="text-base font-bold text-forge-orange">₦{trip.agreed_price?.toLocaleString()}</p>
               </div>
             </div>
             <div className="flex gap-3">

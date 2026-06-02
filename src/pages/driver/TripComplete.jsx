@@ -69,9 +69,16 @@ export default function DriverTripComplete() {
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Customer</p>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-extrabold">CO</div>
+            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-extrabold text-sm">
+              {(trip?.is_for_someone_else ? trip?.recipient_name : trip?.passenger_name)?.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() || 'PA'}
+            </div>
             <div>
-              <p className="font-bold text-gray-900">Chidera Okonkwo</p>
+              <p className="font-bold text-gray-900">
+                {trip?.is_for_someone_else ? trip?.recipient_name : trip?.passenger_name}
+              </p>
+              {trip?.is_for_someone_else && (
+                <p className="text-xs text-forge-orange font-medium">Booked by {trip?.passenger_name}</p>
+              )}
               <span className="text-xs text-green-600 font-semibold">Verified ✓</span>
             </div>
           </div>
