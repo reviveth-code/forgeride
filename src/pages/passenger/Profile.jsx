@@ -17,7 +17,7 @@ function ExpandableSection({ icon: Icon, label, children }) {
       </button>
       {open && (
         <div className="px-5 pb-5 border-t border-gray-100 pt-4">
-          {children}
+          {children(setOpen)}
         </div>
       )}
     </div>
@@ -47,11 +47,12 @@ export default function PassengerProfile() {
   const completedTrips = trips.filter(t => t.status === 'completed');
   const totalSpent = completedTrips.reduce((s, t) => s + (t.agreed_price || 0), 0);
 
-  const handleSave = async () => {
+  const handleSave = async (closeSection) => {
     setSaving(true);
     await base44.auth.updateMe(editForm);
     setUser(u => ({ ...u, ...editForm }));
     setSaving(false);
+    closeSection(false);
   };
 
   const handleLogout = () => base44.auth.logout('/');
@@ -94,49 +95,51 @@ export default function PassengerProfile() {
 
         {/* Personal Information — expandable inline form */}
         <ExpandableSection icon={User} label="Personal Information">
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Full Name</label>
-              <input
-                value={editForm?.full_name || ''}
-                onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
-                placeholder="Your full name"
-                className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
-              />
+          {(setOpen) => (
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Full Name</label>
+                <input
+                  value={editForm?.full_name || ''}
+                  onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
+                  placeholder="Your full name"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Email</label>
+                <input value={user?.email || ''} disabled
+                  className="w-full px-4 py-3 border border-gray-100 rounded-2xl text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
+                />
+              </div>
+              <button onClick={() => handleSave(setOpen)} disabled={saving}
+                className="w-full bg-forge-orange text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 text-sm">
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
+              </button>
             </div>
-            <div>
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Email</label>
-              <input
-                value={user?.email || ''}
-                disabled
-                className="w-full px-4 py-3 border border-gray-100 rounded-2xl text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
-              />
-            </div>
-            <button onClick={handleSave} disabled={saving}
-              className="w-full bg-forge-orange text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 text-sm">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
-            </button>
-          </div>
+          )}
         </ExpandableSection>
 
         {/* Phone Number — expandable inline */}
         <ExpandableSection icon={Phone} label="Phone Number">
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Phone Number</label>
-              <input
-                type="tel"
-                value={editForm?.phone || ''}
-                onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))}
-                placeholder="e.g. 08012345678"
-                className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
-              />
+          {(setOpen) => (
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Phone Number</label>
+                <input
+                  type="tel"
+                  value={editForm?.phone || ''}
+                  onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))}
+                  placeholder="e.g. 08012345678"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
+                />
+              </div>
+              <button onClick={() => handleSave(setOpen)} disabled={saving}
+                className="w-full bg-forge-orange text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 text-sm">
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
+              </button>
             </div>
-            <button onClick={handleSave} disabled={saving}
-              className="w-full bg-forge-orange text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 text-sm">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
-            </button>
-          </div>
+          )}
         </ExpandableSection>
 
         {/* Trip History — navigate */}
@@ -153,12 +156,12 @@ export default function PassengerProfile() {
 
         {/* Privacy & Security — expandable */}
         <ExpandableSection icon={Shield} label="Privacy & Security">
-          <p className="text-sm text-gray-500">Privacy and security settings coming soon.</p>
+          {() => <p className="text-sm text-gray-500">Privacy and security settings coming soon.</p>}
         </ExpandableSection>
 
         {/* My Reviews — expandable */}
         <ExpandableSection icon={Star} label="My Reviews">
-          <p className="text-sm text-gray-500">You haven't received any reviews yet.</p>
+          {() => <p className="text-sm text-gray-500">You haven't received any reviews yet.</p>}
         </ExpandableSection>
 
         {/* Logout */}
