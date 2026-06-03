@@ -1,25 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { LogOut, User, Phone, Shield, Star, ChevronRight, ChevronDown, Clock, Edit2, Loader2, X } from 'lucide-react';
+import { LogOut, User, Phone, Shield, Star, ChevronRight, Clock, Loader2, X } from 'lucide-react';
 
-function ExpandableSection({ icon: Icon, label, children }) {
-  const [open, setOpen] = useState(false);
+function CategoryModal({ title, onClose, onSave, saving, children }) {
+  const overlayRef = useRef();
   return (
-    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-      <button onClick={() => setOpen(o => !o)} className="w-full px-5 py-4 flex items-center gap-4">
-        <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
-          <Icon className="w-5 h-5 text-forge-orange" />
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 bg-black/40 z-50 flex flex-col"
+      onClick={e => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="flex-1" onClick={onClose} />
+      <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100">
+          <h2 className="text-base font-extrabold text-gray-900">{title}</h2>
+          <button onClick={onClose} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
         </div>
-        <span className="flex-1 text-left font-semibold text-gray-900 text-sm">{label}</span>
-        {open ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-300" />}
-      </button>
-      {open && (
-        <div className="px-5 pb-5 border-t border-gray-100 pt-4">
-          {children(setOpen)}
+        {/* Content */}
+        <div className="px-5 pt-5 pb-4">
+          {children}
         </div>
-      )}
+        {/* Save button if provided */}
+        {onSave && (
+          <div className="px-5 pb-8">
+            <button onClick={onSave} disabled={saving}
+              className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 text-sm">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -27,15 +42,13 @@ function ExpandableSection({ icon: Icon, label, children }) {
 export default function PassengerProfile() {
   const [user, setUser] = useState(null);
   const [showLogout, setShowLogout] = useState(false);
-  const [editForm, setEditForm] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [activeModal, setActiveModal] = useState(null); // 'personal' | 'phone' | 'privacy' | 'reviews'
+  const [editForm, setEditForm] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
-    base44.auth.me().then(u => {
-      setUser(u);
-      setEditForm({ full_name: u?.full_name || '', phone: u?.phone || '' });
-    });
+    base44.auth.me().then(u => setUser(u));
   }, []);
 
   const { data: trips = [] } = useQuery({
@@ -47,30 +60,42 @@ export default function PassengerProfile() {
   const completedTrips = trips.filter(t => t.status === 'completed');
   const totalSpent = completedTrips.reduce((s, t) => s + (t.agreed_price || 0), 0);
 
-  const handleSave = async (closeSection) => {
+  const openModal = (key) => {
+    // Reset form to current user values when opening
+    setEditForm({ full_name: user?.full_name || '', phone: user?.phone || '' });
+    setActiveModal(key);
+  };
+
+  const closeModal = () => setActiveModal(null); // discard changes
+
+  const handleSave = async () => {
     setSaving(true);
     await base44.auth.updateMe(editForm);
     setUser(u => ({ ...u, ...editForm }));
     setSaving(false);
-    closeSection(false);
+    setActiveModal(null);
   };
 
   const handleLogout = () => base44.auth.logout('/');
 
+  const menuItems = [
+    { key: 'personal', icon: User, label: 'Personal Information', sub: user?.full_name || 'Edit your name' },
+    { key: 'phone', icon: Phone, label: 'Phone Number', sub: user?.phone || 'Add phone number' },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header */}
       <div className="bg-forge-navy pt-12 pb-6 px-5 text-center">
-        <div className="relative inline-block mb-3">
-          <div className="w-20 h-20 bg-forge-orange rounded-full flex items-center justify-center text-white font-extrabold text-3xl">
-            {user?.full_name?.[0]?.toUpperCase() || 'U'}
-          </div>
+        <div className="w-20 h-20 bg-forge-orange rounded-full flex items-center justify-center text-white font-extrabold text-3xl mx-auto mb-3">
+          {user?.full_name?.[0]?.toUpperCase() || 'U'}
         </div>
         <h1 className="text-xl font-bold text-white">{user?.full_name || 'User'}</h1>
         <p className="text-white/50 text-sm mt-1">{user?.email}</p>
         {user?.phone && <p className="text-white/40 text-xs mt-0.5">{user.phone}</p>}
       </div>
 
-      {/* Stats bar */}
+      {/* Stats */}
       <div className="bg-forge-navy border-t border-white/10 px-5 pb-10">
         <div className="grid grid-cols-3 text-center">
           <div className="py-4">
@@ -85,65 +110,33 @@ export default function PassengerProfile() {
             <p className="text-white/40 text-xs">Total Rides</p>
           </div>
           <div className="py-4">
-            <span className="text-forge-orange font-extrabold text-lg block mb-1">₦{totalSpent >= 1000 ? (totalSpent/1000).toFixed(1)+'k' : totalSpent}</span>
+            <span className="text-forge-orange font-extrabold text-lg block mb-1">
+              ₦{totalSpent >= 1000 ? (totalSpent / 1000).toFixed(1) + 'k' : totalSpent}
+            </span>
             <p className="text-white/40 text-xs">Total Spent</p>
           </div>
         </div>
       </div>
 
       <div className="px-5 -mt-6 space-y-3 pb-8">
-
-        {/* Personal Information — expandable inline form */}
-        <ExpandableSection icon={User} label="Personal Information">
-          {(setOpen) => (
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Full Name</label>
-                <input
-                  value={editForm?.full_name || ''}
-                  onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
-                  placeholder="Your full name"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Email</label>
-                <input value={user?.email || ''} disabled
-                  className="w-full px-4 py-3 border border-gray-100 rounded-2xl text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
-                />
-              </div>
-              <button onClick={() => handleSave(setOpen)} disabled={saving}
-                className="w-full bg-forge-orange text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 text-sm">
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
-              </button>
+        {/* Personal & Phone */}
+        {menuItems.map(({ key, icon: Icon, label, sub }) => (
+          <button key={key} onClick={() => openModal(key)}
+            className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+            <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Icon className="w-5 h-5 text-forge-orange" />
             </div>
-          )}
-        </ExpandableSection>
-
-        {/* Phone Number — expandable inline */}
-        <ExpandableSection icon={Phone} label="Phone Number">
-          {(setOpen) => (
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Phone Number</label>
-                <input
-                  type="tel"
-                  value={editForm?.phone || ''}
-                  onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))}
-                  placeholder="e.g. 08012345678"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
-                />
-              </div>
-              <button onClick={() => handleSave(setOpen)} disabled={saving}
-                className="w-full bg-forge-orange text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 text-sm">
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
-              </button>
+            <div className="flex-1 text-left">
+              <p className="font-semibold text-gray-900 text-sm">{label}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
             </div>
-          )}
-        </ExpandableSection>
+            <ChevronRight className="w-4 h-4 text-gray-300" />
+          </button>
+        ))}
 
-        {/* Trip History — navigate */}
-        <button onClick={() => navigate('/passenger/trip-history')} className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+        {/* Trip History */}
+        <button onClick={() => navigate('/passenger/trip-history')}
+          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
           <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
             <Clock className="w-5 h-5 text-forge-orange" />
           </div>
@@ -154,15 +147,29 @@ export default function PassengerProfile() {
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </button>
 
-        {/* Privacy & Security — expandable */}
-        <ExpandableSection icon={Shield} label="Privacy & Security">
-          {() => <p className="text-sm text-gray-500">Privacy and security settings coming soon.</p>}
-        </ExpandableSection>
+        {/* Privacy & Security */}
+        <button onClick={() => openModal('privacy')}
+          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+          <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Shield className="w-5 h-5 text-forge-orange" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-semibold text-gray-900 text-sm">Privacy & Security</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-300" />
+        </button>
 
-        {/* My Reviews — expandable */}
-        <ExpandableSection icon={Star} label="My Reviews">
-          {() => <p className="text-sm text-gray-500">You haven't received any reviews yet.</p>}
-        </ExpandableSection>
+        {/* My Reviews */}
+        <button onClick={() => openModal('reviews')}
+          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+          <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Star className="w-5 h-5 text-forge-orange" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-semibold text-gray-900 text-sm">My Reviews</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-300" />
+        </button>
 
         {/* Logout */}
         <button onClick={() => setShowLogout(true)}
@@ -174,6 +181,60 @@ export default function PassengerProfile() {
         </button>
       </div>
 
+      {/* Personal Information Modal */}
+      {activeModal === 'personal' && (
+        <CategoryModal title="Personal Information" onClose={closeModal} onSave={handleSave} saving={saving}>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Full Name</label>
+              <input
+                value={editForm.full_name || ''}
+                onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
+                placeholder="Your full name"
+                className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Email</label>
+              <input value={user?.email || ''} disabled
+                className="w-full px-4 py-3 border border-gray-100 rounded-2xl text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
+              />
+            </div>
+          </div>
+        </CategoryModal>
+      )}
+
+      {/* Phone Number Modal */}
+      {activeModal === 'phone' && (
+        <CategoryModal title="Phone Number" onClose={closeModal} onSave={handleSave} saving={saving}>
+          <div>
+            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Phone Number</label>
+            <input
+              type="tel"
+              value={editForm.phone || ''}
+              onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))}
+              placeholder="e.g. 08012345678"
+              className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
+            />
+          </div>
+        </CategoryModal>
+      )}
+
+      {/* Privacy Modal */}
+      {activeModal === 'privacy' && (
+        <CategoryModal title="Privacy & Security" onClose={closeModal}>
+          <p className="text-sm text-gray-500">Privacy and security settings coming soon.</p>
+        </CategoryModal>
+      )}
+
+      {/* Reviews Modal */}
+      {activeModal === 'reviews' && (
+        <CategoryModal title="My Reviews" onClose={closeModal}>
+          <p className="text-sm text-gray-500">You haven't received any reviews yet.</p>
+        </CategoryModal>
+      )}
+
+      {/* Logout confirmation */}
       {showLogout && (
         <div className="fixed inset-0 bg-black/30 flex items-end z-50">
           <div className="bg-white w-full rounded-t-3xl p-6 max-w-md mx-auto">

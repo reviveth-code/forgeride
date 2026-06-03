@@ -1,15 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { LogOut, Star, Shield, ChevronRight, Car, TrendingUp, Briefcase, Edit2, User } from 'lucide-react';
+import { LogOut, Star, Shield, ChevronRight, Car, TrendingUp, Briefcase, Edit2, X, Loader2 } from 'lucide-react';
 import VehicleDetailsSheet from '@/components/driver/VehicleDetailsSheet';
 import EditDriverProfileSheet from '@/components/driver/EditDriverProfileSheet';
+
+function CategoryModal({ title, onClose, onSave, saving, children }) {
+  const overlayRef = useRef();
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 bg-black/40 z-50 flex flex-col"
+      onClick={e => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="flex-1" onClick={onClose} />
+      <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto">
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100">
+          <h2 className="text-base font-extrabold text-gray-900">{title}</h2>
+          <button onClick={onClose} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+        <div className="px-5 pt-5 pb-4">
+          {children}
+        </div>
+        {onSave && (
+          <div className="px-5 pb-8">
+            <button onClick={onSave} disabled={saving}
+              className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 text-sm">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function DriverProfile() {
   const [user, setUser] = useState(null);
   const [showLogout, setShowLogout] = useState(false);
-  const [showVehicle, setShowVehicle] = useState(false);
-  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [activeModal, setActiveModal] = useState(null); // 'vehicle' | 'personal' | 'privacy' | 'reviews'
+  const [showVehicleSheet, setShowVehicleSheet] = useState(false);
+  const [showEditSheet, setShowEditSheet] = useState(false);
 
   useEffect(() => { base44.auth.me().then(setUser); }, []);
 
@@ -28,33 +61,36 @@ export default function DriverProfile() {
   const completedTrips = trips.filter(t => t.status === 'completed');
   const avgRating = reviews.length
     ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
-    : user?.rating || '—';
+    : '—';
 
   const handleLogout = () => base44.auth.logout('/');
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header */}
       <div className="bg-forge-navy pt-12 pb-6 px-5 text-center">
         <div className="relative inline-block mb-3">
           <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-700 flex items-center justify-center">
             {user?.profile_photo
               ? <img src={user.profile_photo} alt="Profile" className="w-full h-full object-cover" />
               : <span className="text-white font-extrabold text-3xl">
-                  {(user?.display_name || user?.full_name)?.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() || 'DR'}
+                  {(user?.display_name || user?.full_name)?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'DR'}
                 </span>
             }
           </div>
-          <button onClick={() => setShowEditProfile(true)}
+          <button onClick={() => setShowEditSheet(true)}
             className="absolute -bottom-1 -right-1 w-8 h-8 bg-forge-orange rounded-full flex items-center justify-center shadow-lg">
             <Edit2 className="w-3.5 h-3.5 text-white" />
           </button>
         </div>
         <h1 className="text-xl font-bold text-white">{user?.display_name || user?.full_name || 'Driver'}</h1>
         <p className="text-white/40 text-sm mt-1">{user?.phone || user?.email}</p>
-        <p className="text-white/50 text-xs mt-1 capitalize">{[user?.vehicle_type, user?.vehicle_plate].filter(Boolean).join(' • ') || 'No vehicle set'}</p>
+        <p className="text-white/50 text-xs mt-1 capitalize">
+          {[user?.vehicle_type, user?.vehicle_plate].filter(Boolean).join(' • ') || 'No vehicle set'}
+        </p>
       </div>
 
-      {/* Stats bar */}
+      {/* Stats */}
       <div className="bg-forge-navy border-t border-white/10 px-5 pb-10">
         <div className="grid grid-cols-3 text-center">
           <div className="py-4">
@@ -81,8 +117,10 @@ export default function DriverProfile() {
         </div>
       </div>
 
-      <div className="px-5 -mt-6 space-y-3">
-        <button onClick={() => setShowVehicle(true)} className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+      <div className="px-5 -mt-6 space-y-3 pb-8">
+        {/* Vehicle Information */}
+        <button onClick={() => setShowVehicleSheet(true)}
+          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
           <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
             <Car className="w-5 h-5 text-forge-orange" />
           </div>
@@ -95,7 +133,9 @@ export default function DriverProfile() {
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </button>
 
-        <button onClick={() => setShowEditProfile(true)} className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+        {/* Personal Information */}
+        <button onClick={() => setShowEditSheet(true)}
+          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
           <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
             <Edit2 className="w-5 h-5 text-forge-orange" />
           </div>
@@ -106,21 +146,31 @@ export default function DriverProfile() {
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </button>
 
-        {[
-          { icon: Shield, label: 'Privacy & Security' },
-          { icon: Star, label: 'My Reviews & Ratings' },
-        ].map(({ icon: Icon, label }) => (
-          <button key={label} className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
-            <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Icon className="w-5 h-5 text-forge-orange" />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="font-semibold text-gray-900 text-sm">{label}</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-300" />
-          </button>
-        ))}
+        {/* Privacy & Security */}
+        <button onClick={() => setActiveModal('privacy')}
+          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+          <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Shield className="w-5 h-5 text-forge-orange" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-semibold text-gray-900 text-sm">Privacy & Security</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-300" />
+        </button>
 
+        {/* My Reviews */}
+        <button onClick={() => setActiveModal('reviews')}
+          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+          <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Star className="w-5 h-5 text-forge-orange" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-semibold text-gray-900 text-sm">My Reviews & Ratings</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-300" />
+        </button>
+
+        {/* Logout */}
         <button onClick={() => setShowLogout(true)}
           className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm border border-red-100">
           <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -130,22 +180,53 @@ export default function DriverProfile() {
         </button>
       </div>
 
-      {showEditProfile && user && (
-        <EditDriverProfileSheet
-          user={user}
-          onClose={() => setShowEditProfile(false)}
-          onSaved={(data) => setUser(u => ({ ...u, ...data }))}
-        />
+      {/* Privacy Modal */}
+      {activeModal === 'privacy' && (
+        <CategoryModal title="Privacy & Security" onClose={() => setActiveModal(null)}>
+          <p className="text-sm text-gray-500">Privacy and security settings coming soon.</p>
+        </CategoryModal>
       )}
 
-      {showVehicle && user && (
+      {/* Reviews Modal */}
+      {activeModal === 'reviews' && (
+        <CategoryModal title="My Reviews & Ratings" onClose={() => setActiveModal(null)}>
+          {reviews.length === 0
+            ? <p className="text-sm text-gray-500">No reviews yet.</p>
+            : <div className="space-y-3">
+                {reviews.map(r => (
+                  <div key={r.id} className="bg-gray-50 rounded-2xl p-3">
+                    <div className="flex items-center gap-1 mb-1">
+                      {[1,2,3,4,5].map(s => (
+                        <Star key={s} className={`w-3.5 h-3.5 ${s <= r.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
+                      ))}
+                    </div>
+                    {r.comment && <p className="text-sm text-gray-600">{r.comment}</p>}
+                  </div>
+                ))}
+              </div>
+          }
+        </CategoryModal>
+      )}
+
+      {/* Vehicle Sheet (existing component) */}
+      {showVehicleSheet && user && (
         <VehicleDetailsSheet
           user={user}
-          onClose={() => setShowVehicle(false)}
+          onClose={() => setShowVehicleSheet(false)}
           onSaved={(data) => setUser(u => ({ ...u, ...data }))}
         />
       )}
 
+      {/* Edit Profile Sheet (existing component) */}
+      {showEditSheet && user && (
+        <EditDriverProfileSheet
+          user={user}
+          onClose={() => setShowEditSheet(false)}
+          onSaved={(data) => setUser(u => ({ ...u, ...data }))}
+        />
+      )}
+
+      {/* Logout confirmation */}
       {showLogout && (
         <div className="fixed inset-0 bg-black/30 flex items-end z-50">
           <div className="bg-white w-full rounded-t-3xl p-6 max-w-md mx-auto">
