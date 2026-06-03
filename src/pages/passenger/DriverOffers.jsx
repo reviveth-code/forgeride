@@ -101,7 +101,7 @@ export default function DriverOffers() {
                     <p className="font-bold text-gray-900 text-sm">{bid.driver_name}</p>
                     <div className="flex items-center gap-1 mt-0.5">
                       <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                      <span className="text-xs text-gray-500">{bid.driver_rating || 4.8}</span>
+                      <span className="text-xs text-gray-500">{bid.driver_rating ?? 0}</span>
                       <span className="text-xs text-green-500 ml-2">●Online now</span>
                     </div>
                     {bid.message && <p className="text-xs text-gray-400 italic mt-1">"{bid.message}"</p>}

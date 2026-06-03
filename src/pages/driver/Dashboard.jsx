@@ -45,7 +45,7 @@ export default function DriverDashboard() {
             </div>
             <div>
               <p className="text-xs text-gray-400">Welcome back,</p>
-              <h1 className="text-xl font-extrabold text-gray-900">{user?.full_name || 'Driver'} 🔥</h1>
+              <h1 className="text-xl font-extrabold text-gray-900">{user?.display_name || user?.full_name || 'Driver'} 🔥</h1>
             </div>
           </div>
           <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
