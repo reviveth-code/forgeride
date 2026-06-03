@@ -92,7 +92,7 @@ export default function DriverDashboard() {
             <div>
               <div className="flex items-center justify-center gap-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <p className="text-xl font-extrabold text-gray-900">{trips.length === 0 ? '—' : (trips.reduce((s,t) => s + (t.rating||5), 0) / trips.length).toFixed(1)}</p>
+                <p className="text-xl font-extrabold text-gray-900">—</p>
               </div>
               <p className="text-xs text-gray-400 font-medium uppercase mt-0.5">Rating</p>
             </div>

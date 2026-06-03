@@ -14,7 +14,37 @@ function haversine(lat1, lng1, lat2, lng2) {
 import { MapContainer, TileLayer } from 'react-leaflet';
 import SmoothDriverMarker from '@/components/SmoothDriverMarker';
 import MapViewUpdater from '@/components/MapViewUpdater';
+import { useMap } from 'react-leaflet';
+import L from 'leaflet';
 import '@/utils/leaflet';
+
+function PickupMarker({ position }) {
+  const map = useMap();
+  useEffect(() => {
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="width:32px;height:32px;background:#E85A0F;border:3px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);font-size:14px;">📍</div>`,
+      iconSize: [32, 32], iconAnchor: [16, 16],
+    });
+    const m = L.marker(position, { icon }).addTo(map).bindPopup('Pickup');
+    return () => m.remove();
+  }, [position?.[0], position?.[1]]);
+  return null;
+}
+
+function DropoffMarker({ position }) {
+  const map = useMap();
+  useEffect(() => {
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="width:32px;height:32px;background:#0D1B3E;border:3px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);font-size:14px;">🏁</div>`,
+      iconSize: [32, 32], iconAnchor: [16, 16],
+    });
+    const m = L.marker(position, { icon }).addTo(map).bindPopup('Dropoff');
+    return () => m.remove();
+  }, [position?.[0], position?.[1]]);
+  return null;
+}
 
 export default function TripTracking() {
   const { tripId } = useParams();
@@ -66,12 +96,34 @@ export default function TripTracking() {
       </div>
 
       {/* Map */}
-      <div className="flex-1" style={{ minHeight: '320px' }}>
-        <MapContainer center={[6.5244, 3.3792]} zoom={14} style={{ height: '100%', width: '100%', minHeight: '320px' }} zoomControl={false} attributionControl={false}>
+      <div className="flex-1 relative" style={{ minHeight: '380px' }}>
+        <MapContainer
+          center={trip?.driver_lat ? [trip.driver_lat, trip.driver_lng] : [6.5244, 3.3792]}
+          zoom={15}
+          style={{ height: '100%', width: '100%', minHeight: '380px' }}
+          zoomControl={false} attributionControl={false}
+        >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          {trip?.driver_lat && <SmoothDriverMarker position={[trip.driver_lat, trip.driver_lng]} />}
-          {trip?.driver_lat && <MapViewUpdater center={[trip.driver_lat, trip.driver_lng]} zoom={15} />}
+          {trip?.driver_lat && (
+            <>
+              <SmoothDriverMarker position={[trip.driver_lat, trip.driver_lng]} />
+              <MapViewUpdater center={[trip.driver_lat, trip.driver_lng]} zoom={15} />
+            </>
+          )}
+          {trip?.pickup_lat && trip?.status !== 'in_progress' && (
+            <PickupMarker position={[trip.pickup_lat, trip.pickup_lng]} />
+          )}
+          {trip?.dropoff_lat && trip?.status === 'in_progress' && (
+            <DropoffMarker position={[trip.dropoff_lat, trip.dropoff_lng]} />
+          )}
         </MapContainer>
+        {/* Live pulse indicator */}
+        {trip?.driver_lat && (
+          <div className="absolute top-3 left-3 z-[1000] bg-white rounded-full px-3 py-1.5 shadow-lg flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-xs font-bold text-gray-700">Live Tracking</span>
+          </div>
+        )}
       </div>
 
       {/* Driver info bottom card */}

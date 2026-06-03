@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { LogOut, Star, Shield, ChevronRight, Car, TrendingUp, Briefcase, Edit2 } from 'lucide-react';
+import { LogOut, Star, Shield, ChevronRight, Car, TrendingUp, Briefcase, Edit2, User } from 'lucide-react';
 import VehicleDetailsSheet from '@/components/driver/VehicleDetailsSheet';
 import EditDriverProfileSheet from '@/components/driver/EditDriverProfileSheet';
 
@@ -91,6 +91,17 @@ export default function DriverProfile() {
             <p className="text-xs text-gray-400 mt-0.5 capitalize">
               {[user?.vehicle_type, user?.vehicle_model, user?.vehicle_plate].filter(Boolean).join(' • ') || 'Tap to add vehicle details'}
             </p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-300" />
+        </button>
+
+        <button onClick={() => setShowEditProfile(true)} className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+          <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Edit2 className="w-5 h-5 text-forge-orange" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-semibold text-gray-900 text-sm">Personal Information</p>
+            <p className="text-xs text-gray-400 mt-0.5">{user?.display_name || user?.full_name || 'Edit your name & phone'}</p>
           </div>
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </button>
