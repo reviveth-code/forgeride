@@ -5,38 +5,63 @@
     "role": {
       "type": "string",
       "enum": [
-        "passenger",
-        "driver",
-        "admin"
+        "admin",
+        "user"
       ],
-      "default": "passenger",
-      "title": "Role"
+      "default": "user"
     },
     "phone": {
       "type": "string",
       "title": "Phone Number"
     },
+    "phone_verified": {
+      "type": "boolean",
+      "title": "Phone Verified",
+      "default": false
+    },
+    "otp_code": {
+      "type": "string",
+      "title": "OTP Code"
+    },
+    "otp_expires_at": {
+      "type": "string",
+      "title": "OTP Expires At"
+    },
+    "otp_phone": {
+      "type": "string",
+      "title": "OTP Phone (pending)"
+    },
+    "display_name": {
+      "type": "string",
+      "title": "Display Name"
+    },
+    "profile_photo": {
+      "type": "string",
+      "title": "Profile Photo URL"
+    },
     "vehicle_type": {
       "type": "string",
       "title": "Vehicle Type"
+    },
+    "vehicle_model": {
+      "type": "string",
+      "title": "Vehicle Model"
     },
     "vehicle_plate": {
       "type": "string",
       "title": "Vehicle Plate"
     },
-    "is_online": {
-      "type": "boolean",
-      "default": false,
-      "title": "Is Online"
+    "vehicle_color": {
+      "type": "string",
+      "title": "Vehicle Color"
+    },
+    "vehicle_year": {
+      "type": "string",
+      "title": "Vehicle Year"
     },
     "rating": {
       "type": "number",
-      "title": "Average Rating"
-    },
-    "trips_count": {
-      "type": "number",
-      "default": 0,
-      "title": "Total Trips"
+      "title": "Rating"
     }
   }
 }

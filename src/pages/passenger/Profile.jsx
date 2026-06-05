@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { LogOut, User, Phone, Shield, Star, ChevronRight, Clock, Loader2, X } from 'lucide-react';
+import { LogOut, User, Phone, Shield, Star, ChevronRight, Clock, Loader2, X, CheckCircle2 } from 'lucide-react';
+import PhoneVerificationModal from '@/components/PhoneVerificationModal';
 
 function CategoryModal({ title, onClose, onSave, saving, children }) {
   const overlayRef = useRef();
@@ -43,6 +44,7 @@ export default function PassengerProfile() {
   const [showLogout, setShowLogout] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeModal, setActiveModal] = useState(null); // 'personal' | 'phone' | 'privacy' | 'reviews'
+  const [showPhoneVerify, setShowPhoneVerify] = useState(false);
   const [editForm, setEditForm] = useState({});
   const navigate = useNavigate();
 
@@ -79,7 +81,6 @@ export default function PassengerProfile() {
 
   const menuItems = [
     { key: 'personal', icon: User, label: 'Personal Information', sub: user?.full_name || 'Edit your name' },
-    { key: 'phone', icon: Phone, label: 'Phone Number', sub: user?.phone || 'Add phone number' },
   ];
 
   return (
@@ -132,6 +133,24 @@ export default function PassengerProfile() {
             <ChevronRight className="w-4 h-4 text-gray-300" />
           </button>
         ))}
+
+        {/* Phone Number (with verification) */}
+        <button onClick={() => setShowPhoneVerify(true)}
+          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+          <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Phone className="w-5 h-5 text-forge-orange" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-semibold text-gray-900 text-sm">Phone Number</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {user?.phone || 'Add & verify your phone number'}
+            </p>
+          </div>
+          {user?.phone_verified
+            ? <CheckCircle2 className="w-5 h-5 text-green-500" />
+            : <ChevronRight className="w-4 h-4 text-gray-300" />
+          }
+        </button>
 
         {/* Trip History */}
         <button onClick={() => navigate('/passenger/trip-history')}
@@ -231,6 +250,14 @@ export default function PassengerProfile() {
         <CategoryModal title="My Reviews" onClose={closeModal}>
           <p className="text-sm text-gray-500">You haven't received any reviews yet.</p>
         </CategoryModal>
+      )}
+
+      {/* Phone Verification Modal */}
+      {showPhoneVerify && (
+        <PhoneVerificationModal
+          onClose={() => setShowPhoneVerify(false)}
+          onVerified={(phone) => setUser(u => ({ ...u, phone, phone_verified: true }))}
+        />
       )}
 
       {/* Logout confirmation */}
