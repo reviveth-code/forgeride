@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, User, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { ArrowLeft, User, Mail, Lock, Eye, EyeOff, Loader2, Phone } from 'lucide-react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
 export default function Register() {
@@ -9,6 +9,7 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [phone, setPhone] = useState('');
   const [role, setRole] = useState('passenger');
   const [vehicleType, setVehicleType] = useState('');
   const [agreed, setAgreed] = useState(false);
@@ -50,7 +51,7 @@ export default function Register() {
         }
       }
       if (token) base44.auth.setToken(token);
-      await base44.auth.updateMe({ full_name: fullName, app_role: role, vehicle_type: vehicleType });
+      await base44.auth.updateMe({ full_name: fullName, app_role: role, vehicle_type: vehicleType, phone });
       window.location.href = role === 'driver' ? '/driver' : '/passenger';
     } catch (err) {
       setError(err.message || 'Invalid verification code');
@@ -121,6 +122,11 @@ export default function Register() {
           <div className="relative">
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange" required />
+          </div>
+          <div className="relative">
+            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input type="tel" placeholder="Phone number (e.g. +2348012345678)" value={phone} onChange={(e) => setPhone(e.target.value)}
               className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange" required />
           </div>
           <div className="relative">
