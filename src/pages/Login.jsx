@@ -7,7 +7,6 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState('passenger');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -83,31 +82,7 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="flex items-center gap-4 my-6">
-          <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-gray-400 text-sm font-medium">OR</span>
-          <div className="flex-1 h-px bg-gray-200" />
-        </div>
-
-        <p className="text-sm text-gray-400 mb-3">Logging in as:</p>
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          {[
-            { key: 'passenger', label: '👤 Customer' },
-            { key: 'driver', label: '🚗 Driver' },
-          ].map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setRole(key)}
-              className={`py-3 rounded-2xl border-2 text-sm font-semibold transition-colors ${
-                role === key ? 'border-forge-orange text-forge-orange bg-forge-orange/5' : 'border-gray-200 text-gray-500'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-gray-500 mt-6">
           Don't have an account?{' '}
           <Link to="/register" className="text-forge-orange font-bold">Sign Up</Link>
         </p>
