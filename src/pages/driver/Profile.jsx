@@ -10,22 +10,24 @@ function CategoryModal({ title, onClose, onSave, saving, children }) {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 bg-black/40 z-50 flex flex-col"
+      className="fixed inset-0 bg-black/40 z-50 flex flex-col justify-end"
       onClick={e => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className="flex-1" onClick={onClose} />
-      <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto">
-        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100">
+      <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto flex flex-col" style={{ maxHeight: '85vh' }}>
+        {/* Header — always visible */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100 flex-shrink-0">
           <h2 className="text-base font-extrabold text-gray-900">{title}</h2>
           <button onClick={onClose} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
             <X className="w-4 h-4 text-gray-500" />
           </button>
         </div>
-        <div className="px-5 pt-5 pb-4">
+        {/* Scrollable content */}
+        <div className="px-5 pt-5 pb-4 overflow-y-auto flex-1">
           {children}
         </div>
+        {/* Save button — always visible at bottom */}
         {onSave && (
-          <div className="px-5 pb-8">
+          <div className="px-5 py-4 border-t border-gray-100 flex-shrink-0">
             <button onClick={onSave} disabled={saving}
               className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 text-sm">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
