@@ -37,8 +37,8 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end">
-      <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto p-6">
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center">
+      <div className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10 overflow-y-auto" style={{ maxHeight: '90vh' }}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-extrabold text-gray-900">
             {step === 'phone' ? 'Verify Phone Number' : 'Enter Verification Code'}
