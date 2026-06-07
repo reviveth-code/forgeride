@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { auth } from '@/lib/firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { base44 } from '@/api/base44Client';
 import { X, Loader2, CheckCircle2, Phone } from 'lucide-react';
 
@@ -8,17 +10,38 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const confirmationResultRef = useRef(null);
+  const recaptchaVerifierRef = useRef(null);
+
+  useEffect(() => {
+    // Initialize invisible reCAPTCHA
+    recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'invisible',
+    });
+    return () => {
+      if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.clear();
+      }
+    };
+  }, []);
 
   const handleSendOtp = async () => {
     if (!phone.trim()) return setError('Please enter a phone number.');
     setError('');
     setLoading(true);
-    const res = await base44.functions.invoke('sendOtp', { phone: phone.trim() });
-    setLoading(false);
-    if (res.data?.success) {
+    try {
+      const result = await signInWithPhoneNumber(auth, phone.trim(), recaptchaVerifierRef.current);
+      confirmationResultRef.current = result;
       setStep('otp');
-    } else {
-      setError(res.data?.error || 'Failed to send OTP. Try again.');
+    } catch (err) {
+      setError(err.message || 'Failed to send OTP. Try again.');
+      // Reset reCAPTCHA on error
+      recaptchaVerifierRef.current.clear();
+      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -26,18 +49,22 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
     if (!otp.trim()) return setError('Please enter the code.');
     setError('');
     setLoading(true);
-    const res = await base44.functions.invoke('verifyOtp', { otp: otp.trim() });
-    setLoading(false);
-    if (res.data?.success) {
-      onVerified(phone);
+    try {
+      await confirmationResultRef.current.confirm(otp.trim());
+      // Save verified phone to user profile
+      await base44.auth.updateMe({ phone: phone.trim(), phone_verified: true });
+      onVerified(phone.trim());
       onClose();
-    } else {
-      setError(res.data?.error || 'Verification failed. Try again.');
+    } catch (err) {
+      setError('Invalid code. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center">
+      <div id="recaptcha-container" />
       <div className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10 overflow-y-auto" style={{ maxHeight: '90vh' }}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-extrabold text-gray-900">
@@ -68,7 +95,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
             />
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
             <button onClick={handleSendOtp} disabled={loading}
-              className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2">
+              className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-60">
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Code'}
             </button>
           </>
@@ -90,7 +117,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
             />
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
             <button onClick={handleVerifyOtp} disabled={loading}
-              className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 mb-3">
+              className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 mb-3 disabled:opacity-60">
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                 <><CheckCircle2 className="w-5 h-5" /> Verify</>
               )}
