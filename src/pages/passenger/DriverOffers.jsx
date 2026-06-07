@@ -21,9 +21,13 @@ export default function DriverOffers() {
 
   const selectDriver = async (bid) => {
     setSelecting(bid.id);
+
+    // Optimistic: immediately hide all other bids and mark this one as selected
+    setBids(prev => prev.filter(b => b.id === bid.id));
+
+    const user = await base44.auth.me();
     await base44.entities.Bid.update(bid.id, { status: 'accepted' });
     await base44.entities.RideRequest.update(requestId, { status: 'matched' });
-    const user = await base44.auth.me();
     const trip = await base44.entities.Trip.create({
       request_id: requestId,
       bid_id: bid.id,

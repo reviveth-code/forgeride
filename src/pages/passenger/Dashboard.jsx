@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import useCurrentLocation from '@/hooks/useCurrentLocation';
 import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Bell, MapPin, User, Package, ChevronRight, Plus } from 'lucide-react';
+import { Bell, MapPin, User, Package, ChevronRight, Plus, Info } from 'lucide-react';
+import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 
 const STATUS_STYLES = {
   open: 'bg-green-100 text-green-700',
@@ -59,10 +60,37 @@ export default function PassengerDashboard() {
             <h1 className="text-2xl font-extrabold text-gray-900">{(user?.display_name || user?.full_name)?.split(' ')[0] || 'User'}</h1>
           </div>
           <div className="flex items-center gap-3">
-            <button className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-forge-orange rounded-full" />
-            </button>
+            <Drawer>
+              <DrawerTrigger asChild>
+                <button className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Bell className="w-5 h-5 text-gray-600" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-forge-orange rounded-full" />
+                </button>
+              </DrawerTrigger>
+              <DrawerContent className="max-w-md mx-auto px-5 pb-8">
+                <DrawerHeader>
+                  <DrawerTitle>Notifications</DrawerTitle>
+                </DrawerHeader>
+                <div className="space-y-3 mt-2">
+                  <div className="flex items-start gap-3 p-4 bg-forge-orange/5 rounded-2xl border border-forge-orange/20">
+                    <Info className="w-5 h-5 text-forge-orange flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-bold text-gray-800">Welcome to ForgeRide!</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Post a ride or delivery request to get started.</p>
+                    </div>
+                  </div>
+                  {onlineDriverCount > 0 && (
+                    <div className="flex items-start gap-3 p-4 bg-green-50 rounded-2xl border border-green-100">
+                      <span className="w-2 h-2 rounded-full bg-green-500 mt-1.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-bold text-gray-800">{onlineDriverCount} driver{onlineDriverCount !== 1 ? 's' : ''} active nearby</p>
+                        <p className="text-xs text-gray-400 mt-0.5">Great time to post a request!</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </DrawerContent>
+            </Drawer>
             <div className="w-10 h-10 bg-forge-orange rounded-full flex items-center justify-center text-white font-bold text-sm">
               {user?.full_name?.[0]?.toUpperCase() || 'U'}
             </div>

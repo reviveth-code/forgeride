@@ -1,7 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, User, Package, Loader2, Clock, AlertCircle } from 'lucide-react';
+import { ArrowLeft, User, Package, Loader2, Clock, AlertCircle, ChevronDown } from 'lucide-react';
+import BottomSheetPicker from '@/components/BottomSheetPicker';
+
+const PRICE_OPTIONS = [
+  { value: '800', label: '₦800' },
+  { value: '1000', label: '₦1,000' },
+  { value: '1200', label: '₦1,200' },
+  { value: '1500', label: '₦1,500' },
+  { value: '2000', label: '₦2,000' },
+  { value: '2500', label: '₦2,500' },
+  { value: '3000', label: '₦3,000' },
+  { value: '5000', label: '₦5,000' },
+];
 
 function haversine(lat1, lng1, lat2, lng2) {
   if (!lat1 || !lng1 || !lat2 || !lng2) return null;
@@ -13,8 +25,6 @@ function haversine(lat1, lng1, lat2, lng2) {
 }
 
 const REQUEST_TTL_MS = 2 * 60 * 1000;
-
-const PRESETS = [800, 1000, 1200, 1500, 2000];
 
 export default function PlaceBid() {
   const { requestId } = useParams();
@@ -28,6 +38,7 @@ export default function PlaceBid() {
   const [secsLeft, setSecsLeft] = useState(120);
   const [existingBid, setExistingBid] = useState(null);
   const [competitorCount, setCompetitorCount] = useState(0);
+  const [showPricePicker, setShowPricePicker] = useState(false);
 
   useEffect(() => {
     base44.entities.RideRequest.get(requestId).then(setRequest);
@@ -76,7 +87,8 @@ export default function PlaceBid() {
   const handleSubmit = async () => {
     if (existingBid) { navigate(`/driver/bid-submitted/${existingBid.id}`); return; }
     setLoading(true);
-    const bid = await base44.entities.Bid.create({
+    // Optimistic: navigate immediately with a temp placeholder, then resolve
+    const bidData = {
       request_id: requestId,
       driver_id: user.email,
       driver_name: user.full_name,
@@ -87,7 +99,8 @@ export default function PlaceBid() {
       status: 'pending',
       eta_min: etaMin,
       distance_from_pickup_km: distFromPickup || 1.0,
-    });
+    };
+    const bid = await base44.entities.Bid.create(bidData);
     navigate(`/driver/bid-submitted/${bid.id}`);
   };
 
@@ -167,20 +180,25 @@ export default function PlaceBid() {
         {/* Price */}
         <div className="bg-white rounded-2xl p-5 shadow-sm">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Your Price Offer</p>
-          <div className="border-2 border-forge-orange rounded-2xl px-5 py-4 mb-4">
+          <button
+            type="button"
+            onClick={() => setShowPricePicker(true)}
+            className="w-full border-2 border-forge-orange rounded-2xl px-5 py-4 mb-3 flex items-center justify-between"
+          >
             <p className="text-3xl font-extrabold text-gray-900">₦ {price.toLocaleString()}</p>
-          </div>
-          <div className="flex gap-2 flex-wrap mb-4">
-            {PRESETS.map(p => (
-              <button key={p} onClick={() => setPrice(p)}
-                className={`flex-1 min-w-14 py-2.5 rounded-xl text-sm font-bold border-2 transition-colors ${price === p ? 'bg-forge-orange border-forge-orange text-white' : 'border-gray-200 text-gray-600 hover:border-forge-orange'}`}>
-                ₦{(p/1000).toFixed(p % 1000 === 0 ? 0 : 1)}k
-              </button>
-            ))}
-          </div>
+            <ChevronDown className="w-5 h-5 text-forge-orange" />
+          </button>
+          <BottomSheetPicker
+            open={showPricePicker}
+            onClose={() => setShowPricePicker(false)}
+            title="Select Your Price"
+            options={PRICE_OPTIONS}
+            value={String(price)}
+            onChange={(val) => setPrice(Number(val))}
+          />
           <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-forge-orange" placeholder="Custom price" />
-          <p className="text-xs text-gray-400 mt-2">ℹ Average pricing from other drivers for this trip (~₦400).</p>
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-forge-orange" placeholder="Or type a custom price" />
+          <p className="text-xs text-gray-400 mt-2">ℹ Tap the amount above to pick from presets, or type a custom amount.</p>
         </div>
 
         {/* Message */}
