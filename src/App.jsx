@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
+import CustomerJourneyMap from './pages/CustomerJourneyMap';
 import Splash from './pages/Splash';
 import PassengerLayout from './components/PassengerLayout';
 import DriverLayout from './components/DriverLayout';
@@ -59,6 +60,7 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/" element={<Splash />} />
+      <Route path="/journey-map" element={<CustomerJourneyMap />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
