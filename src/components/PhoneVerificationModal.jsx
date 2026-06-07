@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { auth } from '@/lib/firebase';
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { base44 } from '@/api/base44Client';
@@ -13,33 +13,30 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
   const confirmationResultRef = useRef(null);
   const recaptchaVerifierRef = useRef(null);
 
-  useEffect(() => {
-    // Initialize invisible reCAPTCHA
+  const getRecaptchaVerifier = () => {
+    if (recaptchaVerifierRef.current) {
+      try { recaptchaVerifierRef.current.clear(); } catch {}
+    }
     recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
       size: 'invisible',
+      callback: () => {},
     });
-    return () => {
-      if (recaptchaVerifierRef.current) {
-        recaptchaVerifierRef.current.clear();
-      }
-    };
-  }, []);
+    return recaptchaVerifierRef.current;
+  };
 
   const handleSendOtp = async () => {
-    if (!phone.trim()) return setError('Please enter a phone number.');
+    const trimmedPhone = phone.trim();
+    if (!trimmedPhone) return setError('Please enter a phone number.');
     setError('');
     setLoading(true);
     try {
-      const result = await signInWithPhoneNumber(auth, phone.trim(), recaptchaVerifierRef.current);
+      const verifier = getRecaptchaVerifier();
+      const result = await signInWithPhoneNumber(auth, trimmedPhone, verifier);
       confirmationResultRef.current = result;
       setStep('otp');
     } catch (err) {
-      setError(err.message || 'Failed to send OTP. Try again.');
-      // Reset reCAPTCHA on error
-      recaptchaVerifierRef.current.clear();
-      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-      });
+      console.error('Firebase Phone Auth error:', err);
+      setError(err.message || 'Failed to send OTP. Check the number format (e.g. +2348012345678) and try again.');
     } finally {
       setLoading(false);
     }
@@ -51,11 +48,11 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
     setLoading(true);
     try {
       await confirmationResultRef.current.confirm(otp.trim());
-      // Save verified phone to user profile
       await base44.auth.updateMe({ phone: phone.trim(), phone_verified: true });
       onVerified(phone.trim());
       onClose();
     } catch (err) {
+      console.error('OTP confirm error:', err);
       setError('Invalid code. Please try again.');
     } finally {
       setLoading(false);
@@ -64,8 +61,10 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center">
+      {/* reCAPTCHA container must be in DOM at all times */}
       <div id="recaptcha-container" />
-      <div className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10 overflow-y-auto" style={{ maxHeight: '90vh' }}>
+
+      <div className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-extrabold text-gray-900">
             {step === 'phone' ? 'Verify Phone Number' : 'Enter Verification Code'}
@@ -80,7 +79,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
             <div className="flex items-center gap-3 bg-forge-orange/10 rounded-2xl px-4 py-3 mb-5">
               <Phone className="w-5 h-5 text-forge-orange flex-shrink-0" />
               <p className="text-sm text-forge-orange font-medium">
-                We'll send a 6-digit code to your phone via SMS.
+                Use international format, e.g. <strong>+2348012345678</strong>
               </p>
             </div>
             <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">
@@ -90,7 +89,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
               type="tel"
               value={phone}
               onChange={e => setPhone(e.target.value)}
-              placeholder="e.g. +2348012345678"
+              placeholder="+2348012345678"
               className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange mb-4"
             />
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
@@ -104,9 +103,6 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
             <p className="text-sm text-gray-500 mb-5">
               Enter the 6-digit code sent to <span className="font-bold text-gray-800">{phone}</span>
             </p>
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">
-              Verification Code
-            </label>
             <input
               type="number"
               value={otp}
@@ -124,7 +120,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
             </button>
             <button onClick={() => { setStep('phone'); setOtp(''); setError(''); }}
               className="w-full text-center text-gray-400 text-sm">
-              Resend code
+              ← Change number / Resend
             </button>
           </>
         )}
