@@ -6,7 +6,6 @@ import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { ArrowLeft, Loader2, Phone, User } from 'lucide-react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
-// Derive a silent email & password from phone number
 const phoneToEmail = (phone) => `${phone.replace(/\D/g, '')}@forgeride.app`;
 const phoneToPassword = (phone) => `FR_${phone.replace(/\D/g, '')}_ride`;
 
@@ -22,20 +21,17 @@ export default function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const confirmationResultRef = useRef(null);
-  const recaptchaVerifierRef = useRef(null);
+  const recaptchaRef = useRef(null);
 
-  const getRecaptchaVerifier = () => {
-    if (recaptchaVerifierRef.current) {
-      try { recaptchaVerifierRef.current.clear(); } catch {}
+  const getVerifier = () => {
+    if (!recaptchaRef.current) {
+      recaptchaRef.current = new RecaptchaVerifier(auth, 'recaptcha-anchor', {
+        size: 'invisible',
+      });
     }
-    recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
-      size: 'invisible',
-      callback: () => {},
-    });
-    return recaptchaVerifierRef.current;
+    return recaptchaRef.current;
   };
 
-  // Step 1: Send Firebase phone OTP
   const handleSendOtp = async (e) => {
     e.preventDefault();
     if (!agreed) return setError('Please agree to the Terms of Service.');
@@ -44,32 +40,25 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
-      const verifier = getRecaptchaVerifier();
-      const result = await signInWithPhoneNumber(auth, trimmedPhone, verifier);
+      const result = await signInWithPhoneNumber(auth, trimmedPhone, getVerifier());
       confirmationResultRef.current = result;
       setStep('otp');
     } catch (err) {
-      setError(err.message || 'Failed to send OTP. Use international format e.g. +2348012345678');
+      try { recaptchaRef.current?.clear(); } catch {}
+      recaptchaRef.current = null;
+      setError('Failed to send OTP. Use international format e.g. +2348012345678');
     } finally {
       setLoading(false);
     }
   };
 
-  // Step 2: Verify Firebase OTP, then silently create Base44 account
   const handleVerifyOtp = async () => {
     if (!otpCode || otpCode.length < 6) return setError('Enter the 6-digit code.');
     setError('');
     setLoading(true);
     try {
-      // Verify phone with Firebase
       await confirmationResultRef.current.confirm(otpCode);
-
-      // Silently register with Base44 using derived email/password
-      const email = phoneToEmail(phone.trim());
-      const password = phoneToPassword(phone.trim());
-      await base44.auth.register({ email, password });
-
-      // Now need to verify the Base44 email OTP
+      await base44.auth.register({ email: phoneToEmail(phone.trim()), password: phoneToPassword(phone.trim()) });
       setStep('email_otp');
     } catch (err) {
       setError(err.message || 'Invalid code. Please try again.');
@@ -78,28 +67,20 @@ export default function Register() {
     }
   };
 
-  // Step 3: Verify the silent Base44 email OTP and finish
   const handleEmailOtp = async () => {
     if (!emailOtpCode || emailOtpCode.length < 6) return setError('Enter the 6-digit code.');
     setError('');
     setLoading(true);
     try {
       const email = phoneToEmail(phone.trim());
-      const password = phoneToPassword(phone.trim());
-      let token;
-      try {
-        const result = await base44.auth.verifyOtp({ email, otpCode: emailOtpCode });
-        token = result?.access_token;
-      } catch (err) {
-        if (!err.message?.includes('already verified')) throw err;
-      }
-      if (token) base44.auth.setToken(token);
+      const result = await base44.auth.verifyOtp({ email, otpCode: emailOtpCode });
+      if (result?.access_token) base44.auth.setToken(result.access_token);
       await base44.auth.updateMe({
         full_name: fullName,
         phone: phone.trim(),
         phone_verified: true,
         app_role: role,
-        vehicle_type: vehicleType,
+        ...(vehicleType && { vehicle_type: vehicleType }),
       });
       window.location.href = role === 'driver' ? '/driver' : '/passenger';
     } catch (err) {
@@ -109,11 +90,10 @@ export default function Register() {
     }
   };
 
-  // --- OTP step (Firebase phone) ---
   if (step === 'otp') {
     return (
       <div className="min-h-screen bg-white flex flex-col max-w-md mx-auto">
-        <div id="recaptcha-container" />
+        <div id="recaptcha-anchor" style={{ position: 'absolute', bottom: 0, left: 0 }} />
         <div className="p-5">
           <button onClick={() => setStep('form')} className="p-2 -ml-2">
             <ArrowLeft className="w-6 h-6 text-gray-700" />
@@ -147,19 +127,16 @@ export default function Register() {
     );
   }
 
-  // --- Email OTP step (silent Base44 account activation) ---
   if (step === 'email_otp') {
     const silentEmail = phoneToEmail(phone.trim());
     return (
       <div className="min-h-screen bg-white flex flex-col max-w-md mx-auto">
         <div className="flex-1 flex flex-col items-center justify-center px-6">
-          <div className="w-20 h-20 border-2 border-forge-orange rounded-full flex items-center justify-center mb-6">
-            <span className="text-forge-orange text-4xl">✓</span>
+          <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
+            <span className="text-green-500 text-4xl">✓</span>
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">One Last Step</h2>
-          <p className="text-gray-400 text-sm text-center mb-2">
-            We sent an activation code to
-          </p>
+          <p className="text-gray-400 text-sm text-center mb-1">We sent an activation code to</p>
           <p className="text-gray-600 text-sm font-semibold text-center mb-8">{silentEmail}</p>
           {error && <div className="mb-4 p-3 rounded-2xl bg-red-50 text-red-600 text-sm w-full text-center">{error}</div>}
           <div className="mb-6">
@@ -181,10 +158,11 @@ export default function Register() {
     );
   }
 
-  // --- Main form ---
   return (
     <div className="min-h-screen bg-white max-w-md mx-auto">
-      <div id="recaptcha-container" />
+      {/* Invisible reCAPTCHA anchor — must be in the DOM */}
+      <div id="recaptcha-anchor" style={{ position: 'absolute', bottom: 0, left: 0 }} />
+
       <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
         <Link to="/login"><ArrowLeft className="w-6 h-6 text-gray-700" /></Link>
         <h1 className="text-xl font-bold text-gray-900">Create Account</h1>
