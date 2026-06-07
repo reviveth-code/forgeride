@@ -1,7 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, X, Clock } from 'lucide-react';
+
+const playChime = () => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+  } catch {}
+};
 
 const CANCEL_REASONS = [
   'Driver is taking too long to arrive',
@@ -17,15 +33,26 @@ export default function WaitingOffers() {
   const navigate = useNavigate();
   const [request, setRequest] = useState(null);
   const [bids, setBids] = useState([]);
+  const [nearbyDrivers, setNearbyDrivers] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const prevBidCountRef = useRef(0);
 
-  const loadBids = () => base44.entities.Bid.filter({ request_id: requestId, status: 'pending' }).then(setBids);
+  const loadBids = () => base44.entities.Bid.filter({ request_id: requestId, status: 'pending' }).then(newBids => {
+    if (newBids.length > prevBidCountRef.current) playChime();
+    prevBidCountRef.current = newBids.length;
+    setBids(newBids);
+  });
 
   useEffect(() => {
     base44.entities.RideRequest.get(requestId).then(setRequest);
     loadBids();
     const unsub = base44.entities.Bid.subscribe(() => loadBids());
+    // Count online drivers
+    base44.entities.Bid.filter({ status: 'pending' }).then(allBids => {
+      const uniqueDrivers = new Set(allBids.map(b => b.driver_id));
+      setNearbyDrivers(uniqueDrivers.size || null);
+    });
     return unsub;
   }, [requestId]);
 
@@ -50,7 +77,9 @@ export default function WaitingOffers() {
             <div className="w-5 h-5 bg-forge-orange rounded-full relative" />
           </div>
           <h2 className="text-xl font-extrabold text-gray-900 mb-2">Looking for drivers near you...</h2>
-          <p className="text-green-600 text-sm font-semibold">● 3 drivers online nearby</p>
+          {nearbyDrivers !== null && (
+            <p className="text-green-600 text-sm font-semibold">● {nearbyDrivers} driver{nearbyDrivers !== 1 ? 's' : ''} active nearby</p>
+          )}
           <p className="text-gray-400 text-xs mt-1">Request posted just now</p>
         </div>
 

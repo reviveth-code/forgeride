@@ -15,6 +15,7 @@ const STATUS_STYLES = {
 export default function PassengerDashboard() {
   const [user, setUser] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [onlineDriverCount, setOnlineDriverCount] = useState(null);
   const navigate = useNavigate();
   const { address: currentAddress, loading: locationLoading } = useCurrentLocation();
 
@@ -25,6 +26,13 @@ export default function PassengerDashboard() {
       userEmail = u?.email;
       loadRequests(u?.email);
     }).catch(() => navigate('/login'));
+
+    // Count active drivers (those with pending bids = recently active)
+    base44.entities.Bid.filter({ status: 'pending' }).then(bids => {
+      const unique = new Set(bids.map(b => b.driver_id));
+      setOnlineDriverCount(unique.size);
+    });
+
     const unsub = base44.entities.RideRequest.subscribe(() => loadRequests(userEmail));
     return unsub;
   }, []);
@@ -66,6 +74,12 @@ export default function PassengerDashboard() {
             {locationLoading ? 'Getting location…' : (currentAddress || 'Location unavailable')}
           </span>
         </div>
+        {onlineDriverCount !== null && onlineDriverCount > 0 && (
+          <div className="flex items-center gap-2 bg-green-50 rounded-2xl px-4 py-2 mt-2">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block" />
+            <span className="text-sm font-semibold text-green-700">{onlineDriverCount} driver{onlineDriverCount !== 1 ? 's' : ''} active nearby</span>
+          </div>
+        )}
       </div>
 
       <div className="px-5 py-5 space-y-5">

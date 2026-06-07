@@ -8,6 +8,7 @@ export default function BidSubmitted() {
   const navigate = useNavigate();
   const [bid, setBid] = useState(null);
   const [request, setRequest] = useState(null);
+  const [passengerViewing, setPassengerViewing] = useState(false);
 
   const goToTrip = (attempts = 0) => {
     base44.entities.Trip.filter({ bid_id: bidId }).then(trips => {
@@ -23,8 +24,23 @@ export default function BidSubmitted() {
     base44.entities.Bid.get(bidId).then(bid => {
       setBid(bid);
       if (bid?.status === 'accepted') goToTrip();
-      if (bid?.request_id) base44.entities.RideRequest.get(bid.request_id).then(setRequest);
+      if (bid?.request_id) {
+        base44.entities.RideRequest.get(bid.request_id).then(setRequest);
+        // If the request is in "matched" status the passenger clicked into offers
+        base44.entities.RideRequest.get(bid.request_id).then(r => {
+          setPassengerViewing(r?.status === 'open' || r?.status === 'matched');
+        });
+      }
     });
+
+    // Poll request status to show "passenger viewing"
+    const viewPoll = setInterval(async () => {
+      const b = await base44.entities.Bid.get(bidId);
+      if (b?.request_id) {
+        const r = await base44.entities.RideRequest.get(b.request_id);
+        setPassengerViewing(r?.status === 'open' || r?.status === 'matched');
+      }
+    }, 5000);
 
     const unsub = base44.entities.Bid.subscribe((event) => {
       if (event.id === bidId) {
@@ -40,7 +56,7 @@ export default function BidSubmitted() {
       if (bid?.status === 'accepted') { clearInterval(poll); goToTrip(); }
     }, 4000);
 
-    return () => { unsub(); clearInterval(poll); };
+    return () => { unsub(); clearInterval(poll); clearInterval(viewPoll); };
   }, [bidId]);
 
   const cancelBid = async () => {
@@ -71,10 +87,17 @@ export default function BidSubmitted() {
             <p className="text-white/50 text-xs font-bold uppercase tracking-wider">Waiting for Response</p>
           </div>
           <p className="text-white font-bold mb-1">Customer has not selected yet</p>
-          <p className="text-forge-orange text-xs flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-forge-orange inline-block" />
-            Monitoring in background
-          </p>
+          {passengerViewing ? (
+            <p className="text-green-400 text-xs flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse" />
+              Passenger is viewing offers now
+            </p>
+          ) : (
+            <p className="text-forge-orange text-xs flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-forge-orange inline-block" />
+              Monitoring in background
+            </p>
+          )}
           {bid && (
             <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
               <div className="flex items-center gap-2 text-white/60 text-sm">
