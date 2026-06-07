@@ -1,28 +1,25 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Loader2, Phone } from 'lucide-react';
-
-const phoneToEmail = (phone) => `${phone.replace(/\D/g, '')}@forgeride.app`;
-const phoneToPassword = (phone) => `FR_${phone.replace(/\D/g, '')}_ride`;
+import { Loader2, Mail, Lock } from 'lucide-react';
 
 export default function Login() {
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const trimmedPhone = phone.trim();
-    if (!trimmedPhone) return setError('Please enter your phone number.');
+    if (!email.trim() || !password.trim()) return setError('Please enter your email and password.');
     setError('');
     setLoading(true);
     try {
-      await base44.auth.loginViaEmailPassword(phoneToEmail(trimmedPhone), phoneToPassword(trimmedPhone));
+      await base44.auth.loginViaEmailPassword(email.trim(), password);
       const user = await base44.auth.me();
       window.location.href = user.app_role === 'driver' ? '/driver' : '/passenger';
     } catch {
-      setError('Login failed. Make sure you have an account or try signing up.');
+      setError('Login failed. Check your credentials or sign up first.');
     } finally {
       setLoading(false);
     }
@@ -38,18 +35,29 @@ export default function Login() {
 
       <div className="bg-white rounded-t-3xl -mt-6 flex-1 px-6 pt-8 pb-10 shadow-2xl">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Log In</h2>
-        <p className="text-gray-400 text-sm mb-6">Enter your registered phone number</p>
+        <p className="text-gray-400 text-sm mb-6">Enter your email and password</p>
 
         {error && <div className="mb-4 p-3 rounded-2xl bg-red-50 text-red-600 text-sm">{error}</div>}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="relative">
-            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
-              type="tel"
-              placeholder="+2348012345678"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
+              required
+            />
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
               className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
               required
             />
