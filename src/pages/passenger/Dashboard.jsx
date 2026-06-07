@@ -17,7 +17,6 @@ const STATUS_STYLES = {
 export default function PassengerDashboard() {
   const [user, setUser] = useState(null);
   const [requests, setRequests] = useState([]);
-  const [onlineDriverCount, setOnlineDriverCount] = useState(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const navigate = useNavigate();
   const { address: currentAddress, coords, loading: locationLoading } = useCurrentLocation();
@@ -29,12 +28,6 @@ export default function PassengerDashboard() {
       userEmail = u?.email;
       loadRequests(u?.email);
     }).catch(() => navigate('/login'));
-
-    // Count active drivers (those with pending bids = recently active)
-    base44.entities.Bid.filter({ status: 'pending' }).then(bids => {
-      const unique = new Set(bids.map(b => b.driver_id));
-      setOnlineDriverCount(unique.size);
-    });
 
     const unsub = base44.entities.RideRequest.subscribe(() => loadRequests(userEmail));
     return unsub;
@@ -79,15 +72,7 @@ export default function PassengerDashboard() {
                       <p className="text-xs text-gray-400 mt-0.5">Post a ride or delivery request to get started.</p>
                     </div>
                   </div>
-                  {onlineDriverCount > 0 && (
-                    <div className="flex items-start gap-3 p-4 bg-green-50 rounded-2xl border border-green-100">
-                      <span className="w-2 h-2 rounded-full bg-green-500 mt-1.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-bold text-gray-800">{onlineDriverCount} driver{onlineDriverCount !== 1 ? 's' : ''} active nearby</p>
-                        <p className="text-xs text-gray-400 mt-0.5">Great time to post a request!</p>
-                      </div>
-                    </div>
-                  )}
+
                 </div>
               </DialogContent>
             </Dialog>
