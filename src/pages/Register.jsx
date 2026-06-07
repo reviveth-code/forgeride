@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Loader2, Mail, Lock, User, Phone } from 'lucide-react';
+import { ArrowLeft, Loader2, Mail, Lock, User, Phone, ChevronDown } from 'lucide-react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import BottomSheetPicker from '@/components/BottomSheetPicker';
+
+const VEHICLE_OPTIONS = [
+  { value: 'keke', label: 'Keke Napep' },
+  { value: 'okada', label: 'Okada (Motorcycle)' },
+  { value: 'car', label: 'Car' },
+  { value: 'bus', label: 'Bus / Minibus' },
+  { value: 'truck', label: 'Truck' },
+];
 
 export default function Register() {
   const [step, setStep] = useState('form'); // 'form' | 'otp'
@@ -12,6 +21,7 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('passenger');
   const [vehicleType, setVehicleType] = useState('');
+  const [showVehiclePicker, setShowVehiclePicker] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState('');
@@ -144,15 +154,22 @@ export default function Register() {
           {role === 'driver' && (
             <div className="pt-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Vehicle Type</p>
-              <select value={vehicleType} onChange={e => setVehicleType(e.target.value)}
-                className="w-full px-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange bg-white text-gray-700">
-                <option value="">Select vehicle type</option>
-                <option value="keke">Keke Napep</option>
-                <option value="okada">Okada (Motorcycle)</option>
-                <option value="car">Car</option>
-                <option value="bus">Bus/Minibus</option>
-                <option value="truck">Truck</option>
-              </select>
+              <button type="button" onClick={() => setShowVehiclePicker(true)}
+                className="w-full px-4 py-4 border border-gray-200 rounded-2xl text-sm text-left flex items-center justify-between focus:outline-none focus:border-forge-orange bg-white"
+              >
+                <span className={vehicleType ? 'text-gray-800' : 'text-gray-400'}>
+                  {vehicleType ? VEHICLE_OPTIONS.find(o => o.value === vehicleType)?.label : 'Select vehicle type'}
+                </span>
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              </button>
+              <BottomSheetPicker
+                open={showVehiclePicker}
+                onClose={() => setShowVehiclePicker(false)}
+                title="Vehicle Type"
+                options={VEHICLE_OPTIONS}
+                value={vehicleType}
+                onChange={setVehicleType}
+              />
             </div>
           )}
 

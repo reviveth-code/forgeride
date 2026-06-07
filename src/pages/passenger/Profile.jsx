@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { LogOut, User, Phone, Shield, Star, ChevronRight, Clock, Loader2, X, CheckCircle2 } from 'lucide-react';
+import { LogOut, User, Phone, Shield, Star, ChevronRight, Clock, Loader2, X, CheckCircle2, Trash2 } from 'lucide-react';
 import PhoneVerificationModal from '@/components/PhoneVerificationModal';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 function CategoryModal({ title, onClose, onSave, saving, children }) {
   const overlayRef = useRef();
@@ -45,6 +46,7 @@ export default function PassengerProfile() {
   const [saving, setSaving] = useState(false);
   const [activeModal, setActiveModal] = useState(null); // 'personal' | 'phone' | 'privacy' | 'reviews'
   const [showPhoneVerify, setShowPhoneVerify] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editForm, setEditForm] = useState({});
   const navigate = useNavigate();
 
@@ -197,6 +199,18 @@ export default function PassengerProfile() {
           </div>
           <span className="font-semibold text-red-500 text-sm flex-1 text-left">Log Out</span>
         </button>
+
+        {/* Delete Account */}
+        <button onClick={() => setShowDeleteDialog(true)}
+          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm border border-red-200">
+          <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Trash2 className="w-5 h-5 text-red-600" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-semibold text-red-600 text-sm">Delete Account</p>
+            <p className="text-xs text-red-300 mt-0.5">Permanently remove your data</p>
+          </div>
+        </button>
       </div>
 
       {/* Personal Information Modal */}
@@ -251,6 +265,30 @@ export default function PassengerProfile() {
           <p className="text-sm text-gray-500">You haven't received any reviews yet.</p>
         </CategoryModal>
       )}
+
+      {/* Delete Account Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete your ForgeRide account and all associated data. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={async () => {
+                await base44.auth.updateMe({ account_deleted: true, account_deleted_at: new Date().toISOString() });
+                base44.auth.logout('/');
+              }}
+            >
+              Yes, Delete My Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Phone Verification Modal */}
       {showPhoneVerify && (

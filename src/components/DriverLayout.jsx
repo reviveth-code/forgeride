@@ -1,4 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import PageTransition from '@/components/PageTransition';
 import { Home, Briefcase, Clock, User } from 'lucide-react';
 
 const tabs = [
@@ -13,9 +15,13 @@ export default function DriverLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 max-w-md mx-auto relative">
       <div className="flex-1 overflow-auto pb-20">
-        <Outlet />
+        <AnimatePresence mode="wait">
+          <PageTransition key={location.pathname}>
+            <Outlet />
+          </PageTransition>
+        </AnimatePresence>
       </div>
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 max-w-md mx-auto">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 max-w-md mx-auto" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex justify-around py-2">
           {tabs.map(({ path, icon: Icon, label }) => {
             const active = location.pathname === path || (path !== '/driver' && location.pathname.startsWith(path));

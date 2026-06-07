@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { MapPin, Clock, User, Package, AlertCircle } from 'lucide-react';
+import { MapPin, Clock, User, Package, AlertCircle, RefreshCw } from 'lucide-react';
 
 function haversine(lat1, lng1, lat2, lng2) {
   if (!lat1 || !lng1 || !lat2 || !lng2) return null;
@@ -79,8 +79,19 @@ export default function NearbyRequests() {
   const [filter, setFilter] = useState('all');
   const [driverPos, setDriverPos] = useState(null);
   const [myBidIds, setMyBidIds] = useState(new Set());
+  const [refreshing, setRefreshing] = useState(false);
+  const [pullY, setPullY] = useState(0);
+  const touchStartY = useRef(null);
+  const containerRef = useRef(null);
 
-  const load = () => base44.entities.RideRequest.filter({ status: 'open' }, '-created_date', 30).then(setRequests);
+  const load = async () => base44.entities.RideRequest.filter({ status: 'open' }, '-created_date', 30).then(setRequests);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+    setPullY(0);
+  };
 
   useEffect(() => {
     load();
@@ -113,8 +124,39 @@ export default function NearbyRequests() {
 
 
 
+  const onTouchStart = (e) => {
+    if (containerRef.current?.scrollTop === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  };
+  const onTouchMove = (e) => {
+    if (touchStartY.current == null) return;
+    const delta = e.touches[0].clientY - touchStartY.current;
+    if (delta > 0) setPullY(Math.min(delta * 0.4, 60));
+  };
+  const onTouchEnd = () => {
+    if (pullY > 40) handleRefresh();
+    else setPullY(0);
+    touchStartY.current = null;
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div
+      ref={containerRef}
+      className="min-h-screen bg-gray-50"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Pull-to-refresh indicator */}
+      {(pullY > 0 || refreshing) && (
+        <div
+          className="flex items-center justify-center overflow-hidden transition-all"
+          style={{ height: refreshing ? 48 : pullY }}
+        >
+          <RefreshCw className={`w-5 h-5 text-forge-orange ${refreshing ? 'animate-spin' : ''}`} />
+        </div>
+      )}
       <div className="bg-white px-5 pt-8 pb-4 border-b border-gray-100">
         <h1 className="text-2xl font-extrabold text-gray-900 mb-3">Nearby Requests</h1>
         <div className="flex items-center gap-2 text-sm text-gray-500">
