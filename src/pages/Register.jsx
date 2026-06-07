@@ -49,9 +49,11 @@ export default function Register() {
     try {
       const result = await base44.auth.verifyOtp({ email: email.trim(), otpCode });
       if (result?.access_token) base44.auth.setToken(result.access_token);
+      const formatted = phone.replace(/^0/, '');
+      const fullPhone = `+234${formatted}`;
       await base44.auth.updateMe({
         full_name: fullName,
-        phone: phone.trim(),
+        phone: fullPhone,
         app_role: role,
         ...(vehicleType && { vehicle_type: vehicleType }),
       });
@@ -124,9 +126,9 @@ export default function Register() {
               className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange" required />
           </div>
           <div className="relative">
-            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input type="tel" placeholder="Phone number (e.g. +2348012345678)" value={phone} onChange={e => setPhone(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange" required />
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-500 select-none">+234</span>
+            <input type="tel" placeholder="08012345678" value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
+              className="w-full pl-16 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange" required />
           </div>
           <div className="relative">
             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
