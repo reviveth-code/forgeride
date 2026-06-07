@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Bell, MapPin, User, Package, ChevronRight, Plus, Info } from 'lucide-react';
-import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import DriversNearbyCard from '@/components/passenger/DriversNearbyCard';
 import useCurrentLocation from '@/hooks/useCurrentLocation';
 
@@ -18,6 +18,7 @@ export default function PassengerDashboard() {
   const [user, setUser] = useState(null);
   const [requests, setRequests] = useState([]);
   const [onlineDriverCount, setOnlineDriverCount] = useState(null);
+  const [notifOpen, setNotifOpen] = useState(false);
   const navigate = useNavigate();
   const { address: currentAddress, coords, loading: locationLoading } = useCurrentLocation();
 
@@ -61,17 +62,15 @@ export default function PassengerDashboard() {
             <h1 className="text-2xl font-extrabold text-gray-900">{(user?.display_name || user?.full_name)?.split(' ')[0] || 'User'}</h1>
           </div>
           <div className="flex items-center gap-3">
-            <Drawer>
-              <DrawerTrigger asChild>
-                <button className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Bell className="w-5 h-5 text-gray-600" />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-forge-orange rounded-full" />
-                </button>
-              </DrawerTrigger>
-              <DrawerContent className="max-w-md mx-auto px-5 pb-8">
-                <DrawerHeader>
-                  <DrawerTitle>Notifications</DrawerTitle>
-                </DrawerHeader>
+            <button onClick={() => setNotifOpen(true)} className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+              <Bell className="w-5 h-5 text-gray-600" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-forge-orange rounded-full" />
+            </button>
+            <Dialog open={notifOpen} onOpenChange={setNotifOpen}>
+              <DialogContent className="max-w-sm mx-auto rounded-2xl px-5 pb-8">
+                <DialogHeader>
+                  <DialogTitle>Notifications</DialogTitle>
+                </DialogHeader>
                 <div className="space-y-3 mt-2">
                   <div className="flex items-start gap-3 p-4 bg-forge-orange/5 rounded-2xl border border-forge-orange/20">
                     <Info className="w-5 h-5 text-forge-orange flex-shrink-0 mt-0.5" />
@@ -90,8 +89,8 @@ export default function PassengerDashboard() {
                     </div>
                   )}
                 </div>
-              </DrawerContent>
-            </Drawer>
+              </DialogContent>
+            </Dialog>
             <div className="w-10 h-10 bg-forge-orange rounded-full flex items-center justify-center text-white font-bold text-sm">
               {user?.full_name?.[0]?.toUpperCase() || 'U'}
             </div>
