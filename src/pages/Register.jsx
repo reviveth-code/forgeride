@@ -72,8 +72,8 @@ export default function Register() {
           <div className="w-20 h-20 border-2 border-forge-orange rounded-full flex items-center justify-center mb-6">
             <span className="text-forge-orange text-4xl">✓</span>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Verify Your Number</h2>
-          <p className="text-gray-400 text-sm text-center mb-8">We sent a 6-digit code to {email}</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Verify Your Email</h2>
+          <p className="text-gray-400 text-sm text-center mb-8">We sent a 6-digit code to your email <span className="font-semibold text-gray-600">{email}</span></p>
           {error && <div className="mb-4 p-3 rounded-2xl bg-red-50 text-red-600 text-sm w-full text-center">{error}</div>}
           <div className="mb-4">
             <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
@@ -95,7 +95,7 @@ export default function Register() {
             Didn't receive a code?{' '}
             <button onClick={() => base44.auth.resendOtp(email)} className="text-forge-orange font-semibold">Resend OTP</button>
           </p>
-          <p className="text-center text-xs text-gray-300 mt-4">Didn't receive a code? Check your email inbox or request a new code above.</p>
+          <p className="text-center text-xs text-gray-300 mt-4">Check your email inbox (and spam folder) for the code.</p>
         </div>
       </div>
     );
