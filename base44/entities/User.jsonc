@@ -62,6 +62,27 @@
     "rating": {
       "type": "number",
       "title": "Rating"
+    },
+    "app_role": {
+      "type": "string",
+      "title": "App Role (passenger/driver)"
+    },
+    "is_online": {
+      "type": "boolean",
+      "title": "Is Online",
+      "default": false
+    },
+    "current_lat": {
+      "type": "number",
+      "title": "Current Latitude"
+    },
+    "current_lng": {
+      "type": "number",
+      "title": "Current Longitude"
+    },
+    "last_seen": {
+      "type": "string",
+      "title": "Last Seen (ISO timestamp)"
     }
   }
 }

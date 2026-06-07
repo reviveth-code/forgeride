@@ -26,10 +26,30 @@ export default function DriverDashboard() {
     return () => { unsub(); clearInterval(poll); };
   }, []);
 
+  useEffect(() => {
+    if (!isOnline) return;
+    const watchId = navigator.geolocation?.watchPosition(
+      ({ coords }) => {
+        base44.auth.updateMe({
+          current_lat: coords.latitude,
+          current_lng: coords.longitude,
+          last_seen: new Date().toISOString(),
+        });
+      },
+      null,
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+    );
+    return () => navigator.geolocation?.clearWatch(watchId);
+  }, [isOnline]);
+
   const toggleOnline = async () => {
     const next = !isOnline;
     setIsOnline(next);
-    await base44.auth.updateMe({ is_online: next });
+    if (!next) {
+      await base44.auth.updateMe({ is_online: false });
+    } else {
+      await base44.auth.updateMe({ is_online: true, last_seen: new Date().toISOString() });
+    }
   };
 
   return (

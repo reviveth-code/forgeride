@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import useCurrentLocation from '@/hooks/useCurrentLocation';
 import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Bell, MapPin, User, Package, ChevronRight, Plus, Info } from 'lucide-react';
 import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import DriversNearbyCard from '@/components/passenger/DriversNearbyCard';
+import useCurrentLocation from '@/hooks/useCurrentLocation';
 
 const STATUS_STYLES = {
   open: 'bg-green-100 text-green-700',
@@ -18,7 +19,7 @@ export default function PassengerDashboard() {
   const [requests, setRequests] = useState([]);
   const [onlineDriverCount, setOnlineDriverCount] = useState(null);
   const navigate = useNavigate();
-  const { address: currentAddress, loading: locationLoading } = useCurrentLocation();
+  const { address: currentAddress, coords, loading: locationLoading } = useCurrentLocation();
 
   useEffect(() => {
     let userEmail = null;
@@ -133,6 +134,9 @@ export default function PassengerDashboard() {
             <Plus className="w-5 h-5" /> Post a New Request
           </button>
         </Link>
+
+        {/* Drivers Nearby */}
+        <DriversNearbyCard userLat={coords?.lat} userLng={coords?.lng} />
 
         {/* Active Requests */}
         <div>
