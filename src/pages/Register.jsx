@@ -1,81 +1,134 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, User, Mail, Lock, Eye, EyeOff, Loader2, Phone } from 'lucide-react';
+import { auth } from '@/lib/firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { ArrowLeft, Loader2, Phone, User } from 'lucide-react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
+// Derive a silent email & password from phone number
+const phoneToEmail = (phone) => `${phone.replace(/\D/g, '')}@forgeride.app`;
+const phoneToPassword = (phone) => `FR_${phone.replace(/\D/g, '')}_ride`;
+
 export default function Register() {
+  const [step, setStep] = useState('form'); // 'form' | 'otp' | 'email_otp'
   const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('passenger');
   const [vehicleType, setVehicleType] = useState('');
   const [agreed, setAgreed] = useState(false);
-  const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [emailOtpCode, setEmailOtpCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const confirmationResultRef = useRef(null);
+  const recaptchaVerifierRef = useRef(null);
 
-  const handleSubmit = async (e) => {
+  const getRecaptchaVerifier = () => {
+    if (recaptchaVerifierRef.current) {
+      try { recaptchaVerifierRef.current.clear(); } catch {}
+    }
+    recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'invisible',
+      callback: () => {},
+    });
+    return recaptchaVerifierRef.current;
+  };
+
+  // Step 1: Send Firebase phone OTP
+  const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) { setError('Passwords do not match'); return; }
-    if (!agreed) { setError('Please agree to Terms of Service'); return; }
+    if (!agreed) return setError('Please agree to the Terms of Service.');
+    const trimmedPhone = phone.trim();
+    if (!trimmedPhone) return setError('Please enter your phone number.');
     setError('');
     setLoading(true);
     try {
-      await base44.auth.register({ email, password });
-      setShowOtp(true);
+      const verifier = getRecaptchaVerifier();
+      const result = await signInWithPhoneNumber(auth, trimmedPhone, verifier);
+      confirmationResultRef.current = result;
+      setStep('otp');
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      setError(err.message || 'Failed to send OTP. Use international format e.g. +2348012345678');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerify = async () => {
+  // Step 2: Verify Firebase OTP, then silently create Base44 account
+  const handleVerifyOtp = async () => {
+    if (!otpCode || otpCode.length < 6) return setError('Enter the 6-digit code.');
     setError('');
     setLoading(true);
     try {
+      // Verify phone with Firebase
+      await confirmationResultRef.current.confirm(otpCode);
+
+      // Silently register with Base44 using derived email/password
+      const email = phoneToEmail(phone.trim());
+      const password = phoneToPassword(phone.trim());
+      await base44.auth.register({ email, password });
+
+      // Now need to verify the Base44 email OTP
+      setStep('email_otp');
+    } catch (err) {
+      setError(err.message || 'Invalid code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 3: Verify the silent Base44 email OTP and finish
+  const handleEmailOtp = async () => {
+    if (!emailOtpCode || emailOtpCode.length < 6) return setError('Enter the 6-digit code.');
+    setError('');
+    setLoading(true);
+    try {
+      const email = phoneToEmail(phone.trim());
+      const password = phoneToPassword(phone.trim());
       let token;
       try {
-        const result = await base44.auth.verifyOtp({ email, otpCode });
+        const result = await base44.auth.verifyOtp({ email, otpCode: emailOtpCode });
         token = result?.access_token;
       } catch (err) {
-        if (err.message?.includes('already verified')) {
-          // already verified, just log them in
-        } else {
-          throw err;
-        }
+        if (!err.message?.includes('already verified')) throw err;
       }
       if (token) base44.auth.setToken(token);
-      await base44.auth.updateMe({ full_name: fullName, app_role: role, vehicle_type: vehicleType, phone });
+      await base44.auth.updateMe({
+        full_name: fullName,
+        phone: phone.trim(),
+        phone_verified: true,
+        app_role: role,
+        vehicle_type: vehicleType,
+      });
       window.location.href = role === 'driver' ? '/driver' : '/passenger';
     } catch (err) {
-      setError(err.message || 'Invalid verification code');
+      setError(err.message || 'Verification failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (showOtp) {
+  // --- OTP step (Firebase phone) ---
+  if (step === 'otp') {
     return (
       <div className="min-h-screen bg-white flex flex-col max-w-md mx-auto">
+        <div id="recaptcha-container" />
         <div className="p-5">
-          <button onClick={() => setShowOtp(false)} className="p-2 -ml-2">
+          <button onClick={() => setStep('form')} className="p-2 -ml-2">
             <ArrowLeft className="w-6 h-6 text-gray-700" />
           </button>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-6">
           <div className="w-20 h-20 border-2 border-forge-orange rounded-full flex items-center justify-center mb-6">
-            <span className="text-forge-orange text-4xl">✓</span>
+            <Phone className="w-8 h-8 text-forge-orange" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Verify Your Email</h2>
-          <p className="text-gray-400 text-sm text-center mb-8">We sent a 6-digit code to your email <span className="font-semibold text-gray-600">{email}</span></p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Verify Your Phone</h2>
+          <p className="text-gray-400 text-sm text-center mb-8">
+            Enter the code sent to <span className="font-semibold text-gray-700">{phone}</span>
+          </p>
           {error && <div className="mb-4 p-3 rounded-2xl bg-red-50 text-red-600 text-sm w-full text-center">{error}</div>}
-          <div className="mb-4">
+          <div className="mb-6">
             <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
               <InputOTPGroup className="gap-2">
                 {[0,1,2,3,4,5].map(i => (
@@ -84,65 +137,73 @@ export default function Register() {
               </InputOTPGroup>
             </InputOTP>
           </div>
-          <button
-            onClick={handleVerify}
-            disabled={loading || otpCode.length < 6}
-            className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl text-base disabled:opacity-60 flex items-center justify-center mb-4"
-          >
+          <button onClick={handleVerifyOtp} disabled={loading || otpCode.length < 6}
+            className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl text-base disabled:opacity-60 flex items-center justify-center mb-4">
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify & Continue'}
           </button>
-          <p className="text-center text-sm text-gray-500 mt-2">
-            Didn't receive a code?{' '}
-            <button onClick={() => base44.auth.resendOtp(email)} className="text-forge-orange font-semibold">Resend OTP</button>
-          </p>
-          <p className="text-center text-xs text-gray-300 mt-4">Check your email inbox (and spam folder) for the code.</p>
+          <button onClick={() => setStep('form')} className="text-sm text-gray-400">← Change number</button>
         </div>
       </div>
     );
   }
 
+  // --- Email OTP step (silent Base44 account activation) ---
+  if (step === 'email_otp') {
+    const silentEmail = phoneToEmail(phone.trim());
+    return (
+      <div className="min-h-screen bg-white flex flex-col max-w-md mx-auto">
+        <div className="flex-1 flex flex-col items-center justify-center px-6">
+          <div className="w-20 h-20 border-2 border-forge-orange rounded-full flex items-center justify-center mb-6">
+            <span className="text-forge-orange text-4xl">✓</span>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">One Last Step</h2>
+          <p className="text-gray-400 text-sm text-center mb-2">
+            We sent an activation code to
+          </p>
+          <p className="text-gray-600 text-sm font-semibold text-center mb-8">{silentEmail}</p>
+          {error && <div className="mb-4 p-3 rounded-2xl bg-red-50 text-red-600 text-sm w-full text-center">{error}</div>}
+          <div className="mb-6">
+            <InputOTP maxLength={6} value={emailOtpCode} onChange={setEmailOtpCode}>
+              <InputOTPGroup className="gap-2">
+                {[0,1,2,3,4,5].map(i => (
+                  <InputOTPSlot key={i} index={i} className="w-12 h-14 text-2xl font-bold border-2 border-gray-200 rounded-2xl data-[active]:border-forge-orange" />
+                ))}
+              </InputOTPGroup>
+            </InputOTP>
+          </div>
+          <button onClick={handleEmailOtp} disabled={loading || emailOtpCode.length < 6}
+            className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl text-base disabled:opacity-60 flex items-center justify-center mb-4">
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Activate Account'}
+          </button>
+          <button onClick={() => base44.auth.resendOtp(silentEmail)} className="text-sm text-forge-orange font-semibold">Resend Code</button>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Main form ---
   return (
     <div className="min-h-screen bg-white max-w-md mx-auto">
+      <div id="recaptcha-container" />
       <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
         <Link to="/login"><ArrowLeft className="w-6 h-6 text-gray-700" /></Link>
         <h1 className="text-xl font-bold text-gray-900">Create Account</h1>
       </div>
 
       <div className="px-5 py-5 pb-10">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Personal Information</p>
-
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Your Details</p>
         {error && <div className="mb-4 p-3 rounded-2xl bg-red-50 text-red-600 text-sm">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSendOtp} className="space-y-3">
           <div className="relative">
             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input type="text" placeholder="Enter your full name" value={fullName} onChange={(e) => setFullName(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange" required />
-          </div>
-          <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)}
+            <input type="text" placeholder="Full name" value={fullName} onChange={e => setFullName(e.target.value)}
               className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange" required />
           </div>
           <div className="relative">
             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input type="tel" placeholder="Phone number (e.g. +2348012345678)" value={phone} onChange={(e) => setPhone(e.target.value)}
+            <input type="tel" placeholder="Phone number (e.g. +2348012345678)" value={phone} onChange={e => setPhone(e.target.value)}
               className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange" required />
-          </div>
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input type={showPassword ? 'text' : 'password'} placeholder="Create a Password" value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-12 pr-12 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange" required />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2">
-              {showPassword ? <EyeOff className="w-5 h-5 text-gray-400" /> : <Eye className="w-5 h-5 text-gray-400" />}
-            </button>
-          </div>
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input type={showPassword ? 'text' : 'password'} placeholder="Confirm Password" value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full pl-12 pr-12 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange" required />
           </div>
 
           <div className="pt-3">
@@ -164,10 +225,10 @@ export default function Register() {
 
           {role === 'driver' && (
             <div className="pt-2">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Vehicle Details...</p>
-              <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)}
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Vehicle Type</p>
+              <select value={vehicleType} onChange={e => setVehicleType(e.target.value)}
                 className="w-full px-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange bg-white text-gray-700">
-                <option value="">Vehicle Type</option>
+                <option value="">Select vehicle type</option>
                 <option value="keke">Keke Napep</option>
                 <option value="okada">Okada (Motorcycle)</option>
                 <option value="car">Car</option>
@@ -178,7 +239,7 @@ export default function Register() {
           )}
 
           <div className="flex items-start gap-3 pt-2">
-            <input type="checkbox" id="terms" checked={agreed} onChange={(e) => setAgreed(e.target.checked)}
+            <input type="checkbox" id="terms" checked={agreed} onChange={e => setAgreed(e.target.checked)}
               className="mt-1 w-5 h-5 rounded accent-forge-orange cursor-pointer" />
             <label htmlFor="terms" className="text-sm text-gray-600 cursor-pointer">
               I agree to the <span className="text-forge-orange font-semibold">Terms of Service</span> and{' '}
@@ -188,7 +249,7 @@ export default function Register() {
 
           <button type="submit" disabled={loading}
             className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl text-base disabled:opacity-60 flex items-center justify-center mt-2">
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Continue'}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Verification Code'}
           </button>
         </form>
 

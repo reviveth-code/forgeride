@@ -1,25 +1,65 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
+import { auth } from '@/lib/firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { Loader2, Phone } from 'lucide-react';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+
+const phoneToEmail = (phone) => `${phone.replace(/\D/g, '')}@forgeride.app`;
+const phoneToPassword = (phone) => `FR_${phone.replace(/\D/g, '')}_ride`;
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [step, setStep] = useState('phone'); // 'phone' | 'otp'
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const confirmationResultRef = useRef(null);
+  const recaptchaVerifierRef = useRef(null);
 
-  const handleSubmit = async (e) => {
+  const getRecaptchaVerifier = () => {
+    if (recaptchaVerifierRef.current) {
+      try { recaptchaVerifierRef.current.clear(); } catch {}
+    }
+    recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'invisible',
+      callback: () => {},
+    });
+    return recaptchaVerifierRef.current;
+  };
+
+  const handleSendOtp = async (e) => {
     e.preventDefault();
+    const trimmedPhone = phone.trim();
+    if (!trimmedPhone) return setError('Please enter your phone number.');
     setError('');
     setLoading(true);
     try {
+      const verifier = getRecaptchaVerifier();
+      const result = await signInWithPhoneNumber(auth, trimmedPhone, verifier);
+      confirmationResultRef.current = result;
+      setStep('otp');
+    } catch (err) {
+      setError(err.message || 'Failed to send OTP. Use international format e.g. +2348012345678');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otpCode || otpCode.length < 6) return setError('Enter the 6-digit code.');
+    setError('');
+    setLoading(true);
+    try {
+      await confirmationResultRef.current.confirm(otpCode);
+      const email = phoneToEmail(phone.trim());
+      const password = phoneToPassword(phone.trim());
       await base44.auth.loginViaEmailPassword(email, password);
       const user = await base44.auth.me();
       window.location.href = user.app_role === 'driver' ? '/driver' : '/passenger';
     } catch (err) {
-      setError(err.message || 'Invalid email or password');
+      setError('Login failed. Make sure you have an account or sign up first.');
     } finally {
       setLoading(false);
     }
@@ -27,6 +67,8 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 max-w-md mx-auto">
+      <div id="recaptcha-container" />
+
       {/* Dark header */}
       <div className="bg-forge-navy pt-16 pb-24 flex flex-col items-center">
         <div className="w-16 h-16 bg-forge-orange rounded-2xl mb-4 shadow-lg" />
@@ -36,57 +78,66 @@ export default function Login() {
 
       {/* White card */}
       <div className="bg-white rounded-t-3xl -mt-6 flex-1 px-6 pt-8 pb-10 shadow-2xl">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Log In to Your Account</h2>
+        {step === 'phone' ? (
+          <>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Log In</h2>
+            <p className="text-gray-400 text-sm mb-6">Enter your phone number to receive a code</p>
 
-        {error && (
-          <div className="mb-4 p-3 rounded-2xl bg-red-50 text-red-600 text-sm">{error}</div>
-        )}
+            {error && <div className="mb-4 p-3 rounded-2xl bg-red-50 text-red-600 text-sm">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange transition-colors"
-              required
-            />
-          </div>
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-12 pr-12 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange transition-colors"
-              required
-            />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2">
-              {showPassword ? <EyeOff className="w-5 h-5 text-gray-400" /> : <Eye className="w-5 h-5 text-gray-400" />}
+            <form onSubmit={handleSendOtp} className="space-y-4">
+              <div className="relative">
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="tel"
+                  placeholder="+2348012345678"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
+                  required
+                />
+              </div>
+              <button type="submit" disabled={loading}
+                className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl text-base disabled:opacity-60 flex items-center justify-center">
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Code'}
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter Code</h2>
+            <p className="text-gray-400 text-sm mb-6">
+              Sent to <span className="font-semibold text-gray-700">{phone}</span>
+            </p>
+
+            {error && <div className="mb-4 p-3 rounded-2xl bg-red-50 text-red-600 text-sm">{error}</div>}
+
+            <div className="flex justify-center mb-6">
+              <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
+                <InputOTPGroup className="gap-2">
+                  {[0,1,2,3,4,5].map(i => (
+                    <InputOTPSlot key={i} index={i} className="w-12 h-14 text-2xl font-bold border-2 border-gray-200 rounded-2xl data-[active]:border-forge-orange" />
+                  ))}
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+
+            <button onClick={handleVerifyOtp} disabled={loading || otpCode.length < 6}
+              className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl text-base disabled:opacity-60 flex items-center justify-center mb-3">
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Log In'}
             </button>
-          </div>
-
-          <div className="flex justify-end">
-            <Link to="/forgot-password" className="text-sm text-forge-orange font-semibold">Forgot Password?</Link>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl text-base disabled:opacity-60 flex items-center justify-center transition-opacity"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Log In'}
-          </button>
-        </form>
+            <button onClick={() => { setStep('phone'); setOtpCode(''); setError(''); }}
+              className="w-full text-center text-gray-400 text-sm">
+              ← Change number
+            </button>
+          </>
+        )}
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Don't have an account?{' '}
           <Link to="/register" className="text-forge-orange font-bold">Sign Up</Link>
         </p>
-        <p className="text-center text-xs text-gray-300 mt-6">🔒 Your data is secure and encrypted</p>
+        <p className="text-center text-xs text-gray-300 mt-4">🔒 Your data is secure and encrypted</p>
       </div>
     </div>
   );
