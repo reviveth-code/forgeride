@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { MapContainer, TileLayer, Marker, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import '@/utils/leaflet';
 import L from 'leaflet';
 
@@ -10,6 +10,7 @@ const VEHICLE_EMOJI = {
   car: '🚗',
   bus: '🚌',
   truck: '🚚',
+  van: '🚐',
 };
 
 function makeDriverIcon(emoji) {
@@ -21,31 +22,58 @@ function makeDriverIcon(emoji) {
   });
 }
 
+// Snaps map bounds to fit all markers
+function MapBoundsFitter({ drivers, userLat, userLng }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const points = [
+      ...drivers.map(d => [d.current_lat, d.current_lng]),
+      ...(userLat && userLng ? [[userLat, userLng]] : []),
+    ];
+
+    if (points.length === 0) return;
+
+    if (points.length === 1) {
+      map.setView(points[0], 14, { animate: true });
+    } else {
+      const bounds = L.latLngBounds(points);
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15, animate: true });
+    }
+  }, [drivers, userLat, userLng]);
+
+  return null;
+}
+
 export default function DriversNearbyCard({ userLat, userLng }) {
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
     const load = async () => {
-      setLoading(true);
+      // Only show loading spinner on very first fetch
+      if (!initialLoadDone.current) setLoading(true);
       const res = await base44.functions.invoke('getOnlineDrivers', {});
       setDrivers(res.data?.drivers || []);
-      setLoading(false);
+      if (!initialLoadDone.current) {
+        setLoading(false);
+        initialLoadDone.current = true;
+      }
     };
     load();
     const poll = setInterval(load, 15000);
     return () => clearInterval(poll);
   }, []);
 
-  const center = userLat && userLng
+  const defaultCenter = userLat && userLng
     ? [userLat, userLng]
     : drivers.length > 0
       ? [drivers[0].current_lat, drivers[0].current_lng]
-      : [6.5244, 3.3792]; // Lagos default
+      : [6.5244, 3.3792]; // Lagos fallback
 
-  // Count by vehicle type
   const counts = drivers.reduce((acc, d) => {
-    const vt = d.vehicle_type || 'car';
+    const vt = (d.vehicle_type || 'car').toLowerCase();
     acc[vt] = (acc[vt] || 0) + 1;
     return acc;
   }, {});
@@ -78,7 +106,7 @@ export default function DriversNearbyCard({ userLat, userLng }) {
 
       <div style={{ height: 180 }}>
         <MapContainer
-          center={center}
+          center={defaultCenter}
           zoom={13}
           style={{ height: '100%', width: '100%' }}
           zoomControl={false}
@@ -89,11 +117,12 @@ export default function DriversNearbyCard({ userLat, userLng }) {
           touchZoom={false}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <MapBoundsFitter drivers={drivers} userLat={userLat} userLng={userLng} />
           {drivers.map(d => (
             <Marker
               key={d.id}
               position={[d.current_lat, d.current_lng]}
-              icon={makeDriverIcon(VEHICLE_EMOJI[d.vehicle_type] || '🚗')}
+              icon={makeDriverIcon(VEHICLE_EMOJI[(d.vehicle_type || 'car').toLowerCase()] || '🚗')}
             >
               <Tooltip permanent={false} direction="top">
                 {d.full_name || 'Driver'} · {d.vehicle_type || 'vehicle'}
@@ -103,7 +132,12 @@ export default function DriversNearbyCard({ userLat, userLng }) {
           {userLat && userLng && (
             <Marker
               position={[userLat, userLng]}
-              icon={L.divIcon({ html: '<div style="width:12px;height:12px;background:#E85A0F;border-radius:50%;border:2px solid white;box-shadow:0 0 6px rgba(0,0,0,0.3)"></div>', className: '', iconSize: [12, 12], iconAnchor: [6, 6] })}
+              icon={L.divIcon({
+                html: '<div style="width:12px;height:12px;background:#E85A0F;border-radius:50%;border:2px solid white;box-shadow:0 0 6px rgba(0,0,0,0.3)"></div>',
+                className: '',
+                iconSize: [12, 12],
+                iconAnchor: [6, 6],
+              })}
             />
           )}
         </MapContainer>
