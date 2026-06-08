@@ -14,7 +14,7 @@ const VEHICLE_EMOJI = {
 };
 
 const RADIUS_KM = 3;
-const POLL_INTERVAL_MS = 15000; // 15 seconds — avoids rate limiting
+const POLL_INTERVAL_MS = 5000; // 5 seconds
 
 function makeDriverIcon(emoji) {
   return L.divIcon({
