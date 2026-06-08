@@ -14,7 +14,7 @@ const VEHICLE_EMOJI = {
 };
 
 const RADIUS_KM = 3;
-const POLL_INTERVAL_MS = 5000; // 5 seconds
+const POLL_INTERVAL_MS = 10000; // 10 seconds
 
 function makeDriverIcon(emoji) {
   return L.divIcon({
@@ -95,11 +95,8 @@ export default function DriversNearbyCard({ userLat, userLng }) {
 
   useEffect(() => {
     fetchDrivers();
-    // Poll every 5s so driver positions update in near real-time
     const poll = setInterval(fetchDrivers, POLL_INTERVAL_MS);
-    // Also subscribe to User entity changes so any position update triggers a refresh
-    const unsub = base44.entities.User.subscribe(() => fetchDrivers());
-    return () => { clearInterval(poll); unsub(); };
+    return () => clearInterval(poll);
   }, [userLat, userLng]);
 
   const defaultCenter = userLat && userLng

@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { userLat, userLng, radiusKm = 5 } = body;
 
-    const allUsers = await base44.asServiceRole.entities.User.list();
+    const allUsers = await base44.asServiceRole.entities.User.list('-last_seen', 200);
     const now = Date.now();
 
     let onlineDrivers = allUsers
