@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
       )
       .map(u => ({
         id: u.id,
-        full_name: u.full_name,
+        full_name: u.display_name || u.full_name,
         vehicle_type: u.vehicle_type,
         current_lat: u.current_lat,
         current_lng: u.current_lng,
