@@ -91,7 +91,7 @@ export default function PlaceBid() {
     const bidData = {
       request_id: requestId,
       driver_id: user.email,
-      driver_name: user.full_name,
+      driver_name: user.display_name || user.full_name,
       driver_rating: user.rating || 4.8,
       vehicle_type: user.vehicle_type || 'keke',
       price,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Star, Loader2 } from 'lucide-react';
+import { ArrowLeft, Star, Loader2, Car } from 'lucide-react';
 
 export default function DriverOffers() {
   const { requestId } = useParams();
@@ -9,13 +9,22 @@ export default function DriverOffers() {
   const [request, setRequest] = useState(null);
   const [bids, setBids] = useState([]);
   const [selecting, setSelecting] = useState(null);
+  const [driverProfiles, setDriverProfiles] = useState({});
+
+  const loadBids = () =>
+    base44.entities.Bid.filter({ request_id: requestId, status: 'pending' }, 'price').then(async (b) => {
+      setBids(b);
+      // Fetch driver profiles for vehicle details
+      const allUsers = await base44.entities.User.list();
+      const profileMap = {};
+      allUsers.forEach(u => { profileMap[u.email] = u; });
+      setDriverProfiles(profileMap);
+    });
 
   useEffect(() => {
     base44.entities.RideRequest.get(requestId).then(setRequest);
-    base44.entities.Bid.filter({ request_id: requestId, status: 'pending' }, 'price').then(setBids);
-    const unsub = base44.entities.Bid.subscribe(() => {
-      base44.entities.Bid.filter({ request_id: requestId, status: 'pending' }, 'price').then(setBids);
-    });
+    loadBids();
+    const unsub = base44.entities.Bid.subscribe(loadBids);
     return unsub;
   }, [requestId]);
 
@@ -34,7 +43,7 @@ export default function DriverOffers() {
       driver_id: bid.driver_id,
       driver_name: bid.driver_name,
       passenger_id: user.email,
-      passenger_name: request.passenger_name || user.full_name || 'Passenger',
+      passenger_name: request.passenger_name || user.display_name || user.full_name || 'Passenger',
       is_for_someone_else: request.is_for_someone_else || false,
       recipient_name: request.recipient_name || '',
       recipient_phone: request.recipient_phone || '',
@@ -108,6 +117,25 @@ export default function DriverOffers() {
                       <span className="text-xs text-gray-500">{bid.driver_rating ?? 0}</span>
                       <span className="text-xs text-green-500 ml-2">●Online now</span>
                     </div>
+                    {(() => {
+                      const dp = driverProfiles[bid.driver_id];
+                      if (!dp) return null;
+                      const parts = [
+                        bid.vehicle_type || dp.vehicle_type,
+                        dp.vehicle_color,
+                        dp.vehicle_model,
+                        dp.vehicle_plate,
+                      ].filter(Boolean);
+                      return parts.length > 0 ? (
+                        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                          <Car className="w-3 h-3 flex-shrink-0" />
+                          {parts.join(' · ')}
+                        </p>
+                      ) : null;
+                    })()}
+                    {driverProfiles[bid.driver_id]?.phone && (
+                      <p className="text-xs text-gray-400 mt-0.5">📞 {driverProfiles[bid.driver_id].phone}</p>
+                    )}
                     {bid.message && <p className="text-xs text-gray-400 italic mt-1">"{bid.message}"</p>}
                   </div>
                 </div>

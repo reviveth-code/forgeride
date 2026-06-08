@@ -50,11 +50,18 @@ export default function TripTracking() {
   const { tripId } = useParams();
   const navigate = useNavigate();
   const [trip, setTrip] = useState(null);
+  const [driverProfile, setDriverProfile] = useState(null);
 
   useEffect(() => {
-    const loadTrip = () => base44.entities.Trip.get(tripId).then(t => {
+    const loadTrip = () => base44.entities.Trip.get(tripId).then(async t => {
       setTrip(t);
       if (t?.status === 'completed') navigate(`/passenger/trip-complete/${tripId}`);
+      // Fetch driver profile once we have the driver_id
+      if (t?.driver_id && !driverProfile) {
+        const users = await base44.entities.User.list();
+        const dp = users.find(u => u.email === t.driver_id);
+        if (dp) setDriverProfile(dp);
+      }
     });
 
     loadTrip();
@@ -90,9 +97,15 @@ export default function TripTracking() {
       <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-gray-100 z-10 relative">
         <button onClick={() => navigate('/passenger')}><ArrowLeft className="w-6 h-6 text-gray-700" /></button>
         <h1 className="text-lg font-bold text-gray-900">Pick up in Progress</h1>
-        <button className="w-10 h-10 bg-forge-orange rounded-full flex items-center justify-center shadow">
-          <Phone className="w-5 h-5 text-white" />
-        </button>
+        {driverProfile?.phone ? (
+          <a href={`tel:${driverProfile.phone}`} className="w-10 h-10 bg-forge-orange rounded-full flex items-center justify-center shadow">
+            <Phone className="w-5 h-5 text-white" />
+          </a>
+        ) : (
+          <div className="w-10 h-10 bg-forge-orange/40 rounded-full flex items-center justify-center shadow">
+            <Phone className="w-5 h-5 text-white" />
+          </div>
+        )}
       </div>
 
       {/* Map */}
@@ -136,10 +149,25 @@ export default function TripTracking() {
               </div>
               <div className="flex-1">
                 <p className="font-bold text-gray-900 text-base">{trip.driver_name}</p>
-                <p className="text-sm text-gray-400">Keke Napep • KJA-291</p>
+                {(() => {
+                  const parts = [
+                    driverProfile?.vehicle_type,
+                    driverProfile?.vehicle_color,
+                    driverProfile?.vehicle_model,
+                  ].filter(Boolean);
+                  return parts.length > 0 ? (
+                    <p className="text-sm text-gray-500">{parts.join(' · ')}</p>
+                  ) : null;
+                })()}
+                {driverProfile?.vehicle_plate && (
+                  <p className="text-xs font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded mt-0.5 inline-block">{driverProfile.vehicle_plate}</p>
+                )}
+                {driverProfile?.phone && (
+                  <p className="text-xs text-gray-400 mt-0.5">📞 {driverProfile.phone}</p>
+                )}
                 <div className="flex items-center gap-1 mt-1">
                   <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  <span className="text-sm text-gray-500">4.8</span>
+                  <span className="text-sm text-gray-500">{driverProfile?.rating ?? trip.driver_rating ?? '—'}</span>
                 </div>
               </div>
             </div>
