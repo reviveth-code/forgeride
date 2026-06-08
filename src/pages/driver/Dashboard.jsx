@@ -36,10 +36,11 @@ export default function DriverDashboard() {
           current_lat: coords.latitude,
           current_lng: coords.longitude,
           last_seen: new Date().toISOString(),
+          is_online: true,
         });
       },
       null,
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
     );
     return () => navigator.geolocation?.clearWatch(watchId);
   }, [isOnline]);

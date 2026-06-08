@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-const STALE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+const STALE_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
 
 function haversineKm(lat1, lng1, lat2, lng2) {
   const R = 6371;
@@ -46,11 +46,12 @@ Deno.serve(async (req) => {
           : null,
       }));
 
-    // If passenger location provided, filter by radius and sort by proximity
+    // If passenger location provided, sort by proximity and filter by radius
+    // Fall back to all online drivers if none found within radius
     if (userLat && userLng) {
-      onlineDrivers = onlineDrivers
-        .filter(d => d.distance_km <= radiusKm)
-        .sort((a, b) => a.distance_km - b.distance_km);
+      onlineDrivers.sort((a, b) => a.distance_km - b.distance_km);
+      const nearby = onlineDrivers.filter(d => d.distance_km <= radiusKm);
+      onlineDrivers = nearby.length > 0 ? nearby : onlineDrivers;
     }
 
     return Response.json({ drivers: onlineDrivers });

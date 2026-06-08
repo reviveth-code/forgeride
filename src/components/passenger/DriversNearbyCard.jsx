@@ -13,7 +13,7 @@ const VEHICLE_EMOJI = {
   van: '🚐',
 };
 
-const RADIUS_KM = 3;
+const RADIUS_KM = 10;
 const POLL_INTERVAL_MS = 10000; // 10 seconds
 
 function makeDriverIcon(emoji) {
