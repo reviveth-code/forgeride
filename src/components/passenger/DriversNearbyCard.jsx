@@ -103,7 +103,7 @@ export default function DriversNearbyCard({ userLat, userLng }) {
     ? [userLat, userLng]
     : drivers.length > 0
       ? [drivers[0].current_lat, drivers[0].current_lng]
-      : [6.5244, 3.3792];
+      : [6.4584, 7.5464]; // Enugu default
 
   const counts = drivers.reduce((acc, d) => {
     const vt = (d.vehicle_type || 'car').toLowerCase();
@@ -118,7 +118,7 @@ export default function DriversNearbyCard({ userLat, userLng }) {
       <div className="px-4 pt-4 pb-2 flex items-center justify-between">
         <div>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-            Drivers Near You · {RADIUS_KM}km
+            Drivers Near You
           </p>
           {loading ? (
             <p className="text-sm text-gray-400 mt-1">Checking availability…</p>
