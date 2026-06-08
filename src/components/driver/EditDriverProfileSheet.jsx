@@ -30,7 +30,7 @@ export default function EditDriverProfileSheet({ user, onClose, onSaved }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end z-50">
+    <div className="fixed inset-0 bg-black/40 flex items-end z-[200]">
       <div className="bg-white w-full rounded-t-3xl p-6 max-w-md mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-extrabold text-gray-900">Edit Profile</h3>

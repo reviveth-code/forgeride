@@ -11,7 +11,7 @@ function CategoryModal({ title, onClose, onSave, saving, children }) {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 bg-black/40 z-50 flex flex-col justify-end"
+      className="fixed inset-0 bg-black/40 z-[200] flex flex-col justify-end"
       onClick={e => { if (e.target === overlayRef.current) onClose(); }}
     >
       <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto flex flex-col" style={{ maxHeight: '85vh' }}>
@@ -300,7 +300,7 @@ export default function PassengerProfile() {
 
       {/* Logout confirmation */}
       {showLogout && (
-        <div className="fixed inset-0 bg-black/30 flex items-end z-50">
+        <div className="fixed inset-0 bg-black/30 flex items-end z-[200]">
           <div className="bg-white w-full rounded-t-3xl p-6 max-w-md mx-auto">
             <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <LogOut className="w-6 h-6 text-forge-orange" />
