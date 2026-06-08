@@ -13,18 +13,48 @@ const VEHICLE_EMOJI = {
   van: '🚐',
 };
 
-const RADIUS_KM = 3; // tighter radius for nearby display
+const RADIUS_KM = 3;
+const POLL_INTERVAL_MS = 5000;
 
 function makeDriverIcon(emoji) {
   return L.divIcon({
-    html: `<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.4))">${emoji}</div>`,
+    html: `<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5))">${emoji}</div>`,
     className: '',
     iconSize: [28, 28],
     iconAnchor: [14, 14],
   });
 }
 
-// Snaps map to fit all visible markers with tight padding
+const USER_ICON = L.divIcon({
+  html: `
+    <div style="position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center">
+      <div style="
+        position:absolute;
+        width:28px;height:28px;
+        background:rgba(232,90,15,0.25);
+        border-radius:50%;
+        animation:ping 1.4s cubic-bezier(0,0,0.2,1) infinite;
+      "></div>
+      <div style="
+        width:14px;height:14px;
+        background:#E85A0F;
+        border-radius:50%;
+        border:2.5px solid white;
+        box-shadow:0 0 8px rgba(232,90,15,0.6);
+        position:relative;z-index:1;
+      "></div>
+    </div>
+    <style>
+      @keyframes ping {
+        75%,100%{ transform:scale(2); opacity:0; }
+      }
+    </style>
+  `,
+  className: '',
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});
+
 function MapBoundsFitter({ drivers, userLat, userLng }) {
   const map = useMap();
 
@@ -33,16 +63,13 @@ function MapBoundsFitter({ drivers, userLat, userLng }) {
       ...drivers.map(d => [d.current_lat, d.current_lng]),
       ...(userLat && userLng ? [[userLat, userLng]] : []),
     ];
-
     if (points.length === 0) return;
-
     if (points.length === 1) {
       map.setView(points[0], 15, { animate: true });
     } else {
-      const bounds = L.latLngBounds(points);
-      map.fitBounds(bounds, { padding: [24, 24], maxZoom: 15, animate: true });
+      map.fitBounds(L.latLngBounds(points), { padding: [28, 28], maxZoom: 15, animate: true });
     }
-  }, [drivers, userLat, userLng]);
+  }, [JSON.stringify(drivers.map(d => [d.current_lat, d.current_lng])), userLat, userLng]);
 
   return null;
 }
@@ -52,24 +79,27 @@ export default function DriversNearbyCard({ userLat, userLng }) {
   const [loading, setLoading] = useState(true);
   const initialLoadDone = useRef(false);
 
-  useEffect(() => {
-    const load = async () => {
-      if (!initialLoadDone.current) setLoading(true);
-      const res = await base44.functions.invoke('getOnlineDrivers', {
-        userLat: userLat || null,
-        userLng: userLng || null,
-        radiusKm: RADIUS_KM,
-      });
-      setDrivers(res.data?.drivers || []);
-      if (!initialLoadDone.current) {
-        setLoading(false);
-        initialLoadDone.current = true;
-      }
-    };
+  const fetchDrivers = async () => {
+    if (!initialLoadDone.current) setLoading(true);
+    const res = await base44.functions.invoke('getOnlineDrivers', {
+      userLat: userLat || null,
+      userLng: userLng || null,
+      radiusKm: RADIUS_KM,
+    });
+    setDrivers(res.data?.drivers || []);
+    if (!initialLoadDone.current) {
+      setLoading(false);
+      initialLoadDone.current = true;
+    }
+  };
 
-    load();
-    const poll = setInterval(load, 8000); // refresh every 8s for real-time feel
-    return () => clearInterval(poll);
+  useEffect(() => {
+    fetchDrivers();
+    // Poll every 5s so driver positions update in near real-time
+    const poll = setInterval(fetchDrivers, POLL_INTERVAL_MS);
+    // Also subscribe to User entity changes so any position update triggers a refresh
+    const unsub = base44.entities.User.subscribe(() => fetchDrivers());
+    return () => { clearInterval(poll); unsub(); };
   }, [userLat, userLng]);
 
   const defaultCenter = userLat && userLng
@@ -134,6 +164,16 @@ export default function DriversNearbyCard({ userLat, userLng }) {
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <MapBoundsFitter drivers={drivers} userLat={userLat} userLng={userLng} />
 
+          {/* Passenger position — pulsing orange dot */}
+          {userLat && userLng && (
+            <Marker position={[userLat, userLng]} icon={USER_ICON}>
+              <Tooltip permanent direction="top" offset={[0, -10]}>
+                <span style={{ fontSize: 11, fontWeight: 700 }}>You</span>
+              </Tooltip>
+            </Marker>
+          )}
+
+          {/* Driver markers — positions update every poll */}
           {drivers.map(d => (
             <Marker
               key={d.id}
@@ -146,18 +186,6 @@ export default function DriversNearbyCard({ userLat, userLng }) {
               </Tooltip>
             </Marker>
           ))}
-
-          {userLat && userLng && (
-            <Marker
-              position={[userLat, userLng]}
-              icon={L.divIcon({
-                html: '<div style="width:14px;height:14px;background:#E85A0F;border-radius:50%;border:2px solid white;box-shadow:0 0 8px rgba(232,90,15,0.5)"></div>',
-                className: '',
-                iconSize: [14, 14],
-                iconAnchor: [7, 7],
-              })}
-            />
-          )}
         </MapContainer>
       </div>
 
