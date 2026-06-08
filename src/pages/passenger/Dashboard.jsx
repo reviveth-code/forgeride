@@ -35,7 +35,8 @@ export default function PassengerDashboard() {
 
   const loadRequests = (email) => {
     if (!email) return;
-    base44.entities.RideRequest.filter({ created_by: email }, '-created_date', 10).then(setRequests);
+    base44.entities.RideRequest.filter({ created_by: email }, '-created_date', 20)
+      .then(all => setRequests(all.filter(r => ['open', 'matched', 'active'].includes(r.status))));
   };
 
   const greeting = () => {

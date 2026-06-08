@@ -12,8 +12,6 @@ const VEHICLE_EMOJI = {
   truck: '🚚',
 };
 
-const STALE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
-
 function makeDriverIcon(emoji) {
   return L.divIcon({
     html: `<div style="font-size:22px;line-height:1">${emoji}</div>`,
@@ -30,16 +28,8 @@ export default function DriversNearbyCard({ userLat, userLng }) {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const all = await base44.entities.User.list();
-      const now = Date.now();
-      const online = all.filter(u =>
-        u.is_online &&
-        u.current_lat &&
-        u.current_lng &&
-        u.app_role === 'driver' &&
-        (!u.last_seen || now - new Date(u.last_seen).getTime() < STALE_THRESHOLD_MS)
-      );
-      setDrivers(online);
+      const res = await base44.functions.invoke('getOnlineDrivers', {});
+      setDrivers(res.data?.drivers || []);
       setLoading(false);
     };
     load();
