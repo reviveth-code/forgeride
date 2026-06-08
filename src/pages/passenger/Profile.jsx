@@ -136,23 +136,17 @@ export default function PassengerProfile() {
           </button>
         ))}
 
-        {/* Phone Number (with verification) */}
-        <button onClick={() => setShowPhoneVerify(true)}
-          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+        {/* Phone Number (Coming Soon) */}
+        <div className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm opacity-60">
           <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
             <Phone className="w-5 h-5 text-forge-orange" />
           </div>
           <div className="flex-1 text-left">
             <p className="font-semibold text-gray-900 text-sm">Phone Number</p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {user?.phone || 'Add & verify your phone number'}
-            </p>
+            <p className="text-xs text-gray-400 mt-0.5">{user?.phone || 'Verification coming soon'}</p>
           </div>
-          {user?.phone_verified
-            ? <CheckCircle2 className="w-5 h-5 text-green-500" />
-            : <ChevronRight className="w-4 h-4 text-gray-300" />
-          }
-        </button>
+          <span className="text-xs font-bold text-forge-orange bg-forge-orange/10 px-2 py-1 rounded-full">Soon</span>
+        </div>
 
         {/* Trip History */}
         <button onClick={() => navigate('/passenger/trip-history')}
