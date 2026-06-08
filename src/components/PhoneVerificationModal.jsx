@@ -100,18 +100,18 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center">
       <div id="recaptcha-container" />
 
-      <div className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10">
+      <div className="bg-card rounded-t-3xl w-full max-w-md p-6 pb-10">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-extrabold text-gray-900">
+          <h3 className="text-lg font-extrabold text-foreground">
             {step === 'phone' && 'Verify Phone Number'}
             {step === 'otp' && 'Enter Verification Code'}
             {step === 'profile' && 'Complete Your Profile'}
           </h3>
           {step !== 'profile' && (
-            <button onClick={onClose} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center">
-              <X className="w-4 h-4 text-gray-600" />
+            <button onClick={onClose} className="w-9 h-9 bg-muted rounded-full flex items-center justify-center">
+              <X className="w-4 h-4 text-muted-foreground" />
             </button>
           )}
         </div>
@@ -125,7 +125,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
                 Use international format, e.g. <strong>+2348012345678</strong>
               </p>
             </div>
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">
               Phone Number
             </label>
             <input
@@ -133,7 +133,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
               value={phone}
               onChange={e => setPhone(e.target.value)}
               placeholder="+2348012345678"
-              className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange mb-4"
+              className="w-full px-4 py-3 border border-border bg-background text-foreground rounded-2xl text-sm focus:outline-none focus:border-forge-orange mb-4"
             />
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
             <button onClick={handleSendOtp} disabled={loading}
@@ -146,8 +146,8 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
         {/* Step 2: OTP */}
         {step === 'otp' && (
           <>
-            <p className="text-sm text-gray-500 mb-5">
-              Enter the 6-digit code sent to <span className="font-bold text-gray-800">{phone}</span>
+            <p className="text-sm text-muted-foreground mb-5">
+              Enter the 6-digit code sent to <span className="font-bold text-foreground">{phone}</span>
             </p>
             <input
               type="number"
@@ -155,7 +155,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
               onChange={e => setOtp(e.target.value)}
               placeholder="000000"
               maxLength={6}
-              className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange mb-4 text-center text-2xl tracking-widest font-bold"
+              className="w-full px-4 py-3 border border-border bg-background text-foreground rounded-2xl text-sm focus:outline-none focus:border-forge-orange mb-4 text-center text-2xl tracking-widest font-bold"
             />
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
             <button onClick={handleVerifyOtp} disabled={loading}
@@ -184,7 +184,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
             <div className="flex flex-col items-center mb-6">
               <div className="relative">
                 <div
-                  className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden cursor-pointer border-2 border-dashed border-gray-300"
+                  className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden cursor-pointer border-2 border-dashed border-border"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {uploadingPhoto ? (
@@ -192,7 +192,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
                   ) : photoUrl ? (
                     <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <User className="w-10 h-10 text-gray-300" />
+                    <User className="w-10 h-10 text-muted-foreground" />
                   )}
                 </div>
                 <button
@@ -202,7 +202,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
                   <Camera className="w-4 h-4 text-white" />
                 </button>
               </div>
-              <p className="text-xs text-gray-400 mt-2">Tap to add photo</p>
+              <p className="text-xs text-muted-foreground mt-2">Tap to add photo</p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -213,7 +213,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
             </div>
 
             {/* Full name */}
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">
               Full Name
             </label>
             <input
@@ -221,7 +221,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
               value={fullName}
               onChange={e => setFullName(e.target.value)}
               placeholder="Enter your full name"
-              className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange mb-5"
+              className="w-full px-4 py-3 border border-border bg-background text-foreground rounded-2xl text-sm focus:outline-none focus:border-forge-orange mb-5"
             />
 
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
@@ -231,7 +231,7 @@ export default function PhoneVerificationModal({ onClose, onVerified }) {
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save & Continue'}
             </button>
             <button onClick={() => { onVerified(phone.trim()); onClose(); }}
-              className="w-full text-center text-gray-400 text-sm">
+              className="w-full text-center text-muted-foreground text-sm">
               Skip for now
             </button>
           </>

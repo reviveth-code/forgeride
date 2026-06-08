@@ -40,14 +40,14 @@ export default function LocationSearchInput({ placeholder, value, onChange, dotC
         value={query}
         onChange={(e) => search(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-10 pr-10 py-4 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
+        className="w-full pl-10 pr-10 py-4 border border-border bg-card text-foreground rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
         required
       />
       {results.length > 0 && (
-        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-2xl shadow-xl mt-1 max-h-52 overflow-y-auto">
+        <div className="absolute z-50 w-full bg-card border border-border rounded-2xl shadow-xl mt-1 max-h-52 overflow-y-auto">
           {results.map((r, i) => (
             <button key={i} type="button" onClick={() => select(r)}
-              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-0 flex items-start gap-2">
+              className="w-full text-left px-4 py-3 text-sm text-foreground hover:bg-accent border-b border-border last:border-0 flex items-start gap-2">
               <MapPin className="w-4 h-4 text-forge-orange mt-0.5 flex-shrink-0" />
               <span className="line-clamp-2">{r.display_name}</span>
             </button>

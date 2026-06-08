@@ -90,7 +90,7 @@
   }
 
   input, textarea, select {
-    @apply text-gray-900;
+    @apply text-foreground bg-background;
   }
 
   button, a, [role="tab"] {
