@@ -26,11 +26,10 @@ export default function EditDriverProfileSheet({ user, onClose, onSaved }) {
     const updates = { ...form, profile_photo: photoUrl };
     await base44.auth.updateMe(updates);
     onSaved(updates);
-    onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end z-[200]">
+    <div className="fixed inset-0 bg-black/40 flex items-end z-[300]">
       <div className="bg-white w-full rounded-t-3xl p-6 max-w-md mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-extrabold text-gray-900">Edit Profile</h3>

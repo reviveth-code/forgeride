@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     const onlineDrivers = allUsers
       .filter(u =>
         u.is_online &&
-        u.app_role === 'driver' &&
+        (u.app_role === 'driver' || u.role === 'driver') &&
         u.current_lat &&
         u.current_lng &&
         (!u.last_seen || now - new Date(u.last_seen).getTime() < STALE_THRESHOLD_MS)

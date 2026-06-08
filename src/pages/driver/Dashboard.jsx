@@ -12,7 +12,9 @@ export default function DriverDashboard() {
   const navigate = useNavigate();
   const { address: currentAddress, loading: locationLoading } = useCurrentLocation();
 
-  const loadRequests = () => base44.entities.RideRequest.filter({ status: 'open' }, '-created_date', 5).then(setRequests);
+  const REQUEST_TTL_MS = 2 * 60 * 1000;
+  const loadRequests = () => base44.entities.RideRequest.filter({ status: 'open' }, '-created_date', 5)
+    .then(all => setRequests(all.filter(r => (Date.now() - new Date(r.created_date).getTime()) < REQUEST_TTL_MS)));
 
   useEffect(() => {
     base44.auth.me().then(u => {

@@ -253,7 +253,11 @@ export default function DriverProfile() {
         <VehicleDetailsSheet
           user={user}
           onClose={() => setShowVehicleSheet(false)}
-          onSaved={(data) => setUser(u => ({ ...u, ...data }))}
+          onSaved={async (data) => {
+            const fresh = await base44.auth.me();
+            setUser(fresh);
+            setShowVehicleSheet(false);
+          }}
         />
       )}
 
@@ -262,7 +266,11 @@ export default function DriverProfile() {
         <EditDriverProfileSheet
           user={user}
           onClose={() => setShowEditSheet(false)}
-          onSaved={(data) => setUser(u => ({ ...u, ...data }))}
+          onSaved={async (data) => {
+            const fresh = await base44.auth.me();
+            setUser(fresh);
+            setShowEditSheet(false);
+          }}
         />
       )}
 

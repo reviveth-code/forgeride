@@ -117,10 +117,9 @@ export default function NearbyRequests() {
     return () => { unsub(); clearInterval(poll); navigator.geolocation?.clearWatch(watchId); };
   }, []);
 
-  const now = Date.now();
   const filtered = requests
     .filter(r => filter === 'all' || r.request_type === filter)
-    .filter(r => (now - new Date(r.created_date).getTime()) < REQUEST_TTL_MS);  // only show non-expired
+    .filter(r => (Date.now() - new Date(r.created_date).getTime()) < REQUEST_TTL_MS);
 
 
 
