@@ -64,7 +64,7 @@ export default function PassengerTripComplete() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-md mx-auto">
+    <div className="min-h-screen bg-background max-w-md mx-auto">
       {/* Header */}
       <div className="bg-forge-navy pt-14 pb-10 px-5 text-center relative overflow-hidden">
         <div className="absolute top-4 left-8 text-2xl opacity-60">🎉</div>
@@ -78,11 +78,11 @@ export default function PassengerTripComplete() {
 
       <div className="px-5 py-5 space-y-4">
         {/* Trip stats */}
-        <div className="bg-white rounded-2xl p-5 grid grid-cols-2 gap-4 shadow-sm">
-          <div><p className="text-xs text-gray-400 mb-1">Distance</p><p className="text-xl font-extrabold text-gray-900">{trip?.distance_km || '—'} km</p></div>
-          <div><p className="text-xs text-gray-400 mb-1">Duration</p><p className="text-xl font-extrabold text-gray-900">{trip?.duration_min || '—'} min</p></div>
-          <div><p className="text-xs text-gray-400 mb-1">Amount Paid</p><p className="text-xl font-extrabold text-forge-orange">₦{trip?.agreed_price?.toLocaleString() || '—'}</p></div>
-          <div><p className="text-xs text-gray-400 mb-1">Trip Type</p><p className="text-xl font-extrabold text-gray-900 capitalize">{trip?.request_type || '—'}</p></div>
+        <div className="bg-card rounded-2xl p-5 grid grid-cols-2 gap-4 shadow-sm">
+          <div><p className="text-xs text-muted-foreground mb-1">Distance</p><p className="text-xl font-extrabold text-foreground">{trip?.distance_km || '—'} km</p></div>
+          <div><p className="text-xs text-muted-foreground mb-1">Duration</p><p className="text-xl font-extrabold text-foreground">{trip?.duration_min || '—'} min</p></div>
+          <div><p className="text-xs text-muted-foreground mb-1">Amount Paid</p><p className="text-xl font-extrabold text-forge-orange">₦{trip?.agreed_price?.toLocaleString() || '—'}</p></div>
+          <div><p className="text-xs text-muted-foreground mb-1">Trip Type</p><p className="text-xl font-extrabold text-foreground capitalize">{trip?.request_type || '—'}</p></div>
           {trip?.pickup_address && (
             <div className="col-span-2 border-t border-gray-100 pt-3 space-y-1">
               <div className="flex items-center gap-2">
@@ -98,13 +98,13 @@ export default function PassengerTripComplete() {
         </div>
 
         {/* Rate driver */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Rate Your Driver</p>
+        <div className="bg-card rounded-2xl p-5 shadow-sm">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">Rate Your Driver</p>
           <div className="flex flex-col items-center">
             <div className="w-16 h-16 bg-forge-orange rounded-full flex items-center justify-center text-white font-bold text-xl mb-2 shadow">
               {initials(trip?.driver_name)}
             </div>
-            <p className="font-extrabold text-gray-900 text-base">{trip?.driver_name || 'Your Driver'}</p>
+            <p className="font-extrabold text-foreground text-base">{trip?.driver_name || 'Your Driver'}</p>
             <p className="text-sm text-gray-400 mb-5">How was your experience?</p>
 
             {/* Stars */}
@@ -130,8 +130,8 @@ export default function PassengerTripComplete() {
 
         {/* Quick tags (only show if rating selected) */}
         {rating > 0 && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">What stood out?</p>
+          <div className="bg-card rounded-2xl p-5 shadow-sm">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">What stood out?</p>
             <div className="flex flex-wrap gap-2">
               {QUICK_TAGS.map(tag => (
                 <button key={tag} onClick={() => toggleTag(tag)}
@@ -149,8 +149,8 @@ export default function PassengerTripComplete() {
 
         {/* Comment */}
         {rating > 0 && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Add a comment (optional)</p>
+          <div className="bg-card rounded-2xl p-5 shadow-sm">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Add a comment (optional)</p>
             <textarea
               placeholder="Tell us about your experience…"
               value={comment}

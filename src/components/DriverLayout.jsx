@@ -11,12 +11,12 @@ const tabs = [
 export default function DriverLayout() {
   const location = useLocation();
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 max-w-md mx-auto relative">
+    <div className="min-h-screen flex flex-col bg-background max-w-md mx-auto relative">
       <div className="flex-1 overflow-auto pb-20">
         <Outlet />
       </div>
       <nav
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 max-w-md mx-auto"
+        className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 max-w-md mx-auto"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex justify-around py-2">

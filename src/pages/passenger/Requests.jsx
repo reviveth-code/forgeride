@@ -24,9 +24,9 @@ export default function PassengerRequests() {
   const filtered = requests.filter(r => filter === 'all' || r.status === filter);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white px-5 pt-8 pb-5 border-b border-gray-100">
-        <h1 className="text-2xl font-extrabold text-gray-900 mb-4">My Requests</h1>
+    <div className="min-h-screen bg-background">
+      <div className="bg-card px-5 pt-8 pb-5 border-b border-border">
+        <h1 className="text-2xl font-extrabold text-foreground mb-4">My Requests</h1>
         <div className="flex gap-2 overflow-x-auto pb-1">
           {['all', 'open', 'matched', 'active', 'completed', 'cancelled'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
@@ -39,7 +39,7 @@ export default function PassengerRequests() {
 
       <div className="px-5 py-4 space-y-3">
         {filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl p-10 text-center">
+          <div className="bg-card rounded-2xl p-10 text-center">
             <p className="text-gray-400 text-sm mb-4">No requests found.</p>
             <Link to="/passenger/new-request">
               <button className="bg-forge-orange text-white font-bold px-6 py-3 rounded-2xl text-sm flex items-center gap-2 mx-auto">
@@ -49,12 +49,12 @@ export default function PassengerRequests() {
           </div>
         ) : (
           filtered.map(req => (
-            <div key={req.id} className="bg-white rounded-2xl p-4 shadow-sm">
+            <div key={req.id} className="bg-card rounded-2xl p-4 shadow-sm">
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1 mr-3">
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-2 h-2 rounded-full bg-forge-orange" />
-                    <p className="text-sm font-semibold text-gray-900">{req.pickup_address}</p>
+                    <p className="text-sm font-semibold text-foreground">{req.pickup_address}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-gray-400" />

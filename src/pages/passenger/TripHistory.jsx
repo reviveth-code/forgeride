@@ -28,7 +28,7 @@ export default function TripHistory() {
   const completedCount = trips.filter(t => t.status === 'completed').length;
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-md mx-auto">
+    <div className="min-h-screen bg-background max-w-md mx-auto">
       {/* Header */}
       <div className="bg-forge-navy pt-12 pb-6 px-5">
         <div className="flex items-center gap-4 mb-5">
@@ -66,7 +66,7 @@ export default function TripHistory() {
             const cfg = statusConfig[trip.status] || statusConfig.completed;
             const StatusIcon = cfg.icon;
             return (
-              <div key={trip.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <div key={trip.id} className="bg-card rounded-2xl p-4 shadow-sm border border-border">
                 {/* Status + date row */}
                 <div className="flex items-center justify-between mb-3">
                   <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full ${cfg.color}`}>
@@ -80,12 +80,12 @@ export default function TripHistory() {
                 <div className="space-y-2 mb-3">
                   <div className="flex items-start gap-2.5">
                     <div className="w-2.5 h-2.5 rounded-full bg-forge-orange mt-1 flex-shrink-0" />
-                    <p className="text-sm text-gray-800 font-medium leading-snug">{trip.pickup_address || 'Pickup location'}</p>
+                    <p className="text-sm text-foreground font-medium leading-snug">{trip.pickup_address || 'Pickup location'}</p>
                   </div>
                   <div className="ml-1 border-l-2 border-dashed border-gray-200 h-3" />
                   <div className="flex items-start gap-2.5">
                     <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-gray-800 font-medium leading-snug">{trip.dropoff_address || 'Dropoff location'}</p>
+                    <p className="text-sm text-foreground font-medium leading-snug">{trip.dropoff_address || 'Dropoff location'}</p>
                   </div>
                 </div>
 

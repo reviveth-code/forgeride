@@ -18,7 +18,7 @@ export default function DriverTripComplete() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-md mx-auto">
+    <div className="min-h-screen bg-background max-w-md mx-auto">
       {/* Celebration header */}
       <div className="bg-forge-navy pt-14 pb-12 px-5 text-center relative overflow-hidden">
         <div className="absolute top-6 left-8 text-2xl opacity-40">🎊</div>
@@ -32,20 +32,20 @@ export default function DriverTripComplete() {
 
       <div className="px-5 py-5 space-y-4">
         {/* Trip Summary */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Trip Summary</p>
+        <div className="bg-card rounded-2xl p-5 shadow-sm">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">Trip Summary</p>
           <div className="grid grid-cols-2 gap-y-4">
             <div>
-              <p className="text-xs text-gray-400">Distance Covered</p>
-              <p className="font-extrabold text-gray-900 text-xl mt-0.5">{trip?.distance_km || 14.3} km</p>
+              <p className="text-xs text-muted-foreground">Distance Covered</p>
+              <p className="font-extrabold text-foreground text-xl mt-0.5">{trip?.distance_km || 14.3} km</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Duration</p>
-              <p className="font-extrabold text-gray-900 text-xl mt-0.5">{trip?.duration_min || 26} min</p>
+              <p className="text-xs text-muted-foreground">Duration</p>
+              <p className="font-extrabold text-foreground text-xl mt-0.5">{trip?.duration_min || 26} min</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Request Type</p>
-              <p className="font-extrabold text-gray-900 text-xl mt-0.5 capitalize">{trip?.request_type || 'Person'}</p>
+              <p className="text-xs text-muted-foreground">Request Type</p>
+              <p className="font-extrabold text-foreground text-xl mt-0.5 capitalize">{trip?.request_type || 'Person'}</p>
             </div>
             <div>
               <p className="text-xs text-gray-400">Trip Status</p>
@@ -66,14 +66,14 @@ export default function DriverTripComplete() {
         </div>
 
         {/* Customer */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Customer</p>
+        <div className="bg-card rounded-2xl p-4 shadow-sm">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Customer</p>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-extrabold text-sm">
               {(trip?.is_for_someone_else ? trip?.recipient_name : trip?.passenger_name)?.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() || 'PA'}
             </div>
             <div>
-              <p className="font-bold text-gray-900">
+              <p className="font-bold text-foreground">
                 {trip?.is_for_someone_else ? trip?.recipient_name : trip?.passenger_name}
               </p>
               {trip?.is_for_someone_else && (
@@ -89,7 +89,7 @@ export default function DriverTripComplete() {
           🔍 Find Next Job
         </button>
         <button onClick={goOffline}
-          className="w-full border-2 border-gray-200 text-gray-700 font-bold py-4 rounded-2xl text-base">
+          className="w-full border-2 border-border text-foreground font-bold py-4 rounded-2xl text-base">
           Go Offline
         </button>
         <Link to="/driver/history" className="block text-center text-forge-orange text-sm font-semibold">

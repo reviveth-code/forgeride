@@ -62,10 +62,10 @@ export default function WaitingOffers() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-md mx-auto">
-      <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-gray-100">
-        <button onClick={() => navigate('/passenger')}><ArrowLeft className="w-6 h-6 text-gray-700" /></button>
-        <h1 className="text-lg font-bold text-gray-900">Waiting for Offers</h1>
+    <div className="min-h-screen bg-background max-w-md mx-auto">
+      <div className="flex items-center justify-between px-5 py-4 bg-card border-b border-border">
+        <button onClick={() => navigate('/passenger')}><ArrowLeft className="w-6 h-6 text-foreground" /></button>
+        <h1 className="text-lg font-bold text-foreground">Waiting for Offers</h1>
         <button onClick={() => setShowCancelModal(true)}><X className="w-5 h-5 text-gray-400" /></button>
       </div>
 
@@ -76,7 +76,7 @@ export default function WaitingOffers() {
             <div className="w-5 h-5 bg-forge-orange rounded-full animate-ping absolute top-0 left-0" />
             <div className="w-5 h-5 bg-forge-orange rounded-full relative" />
           </div>
-          <h2 className="text-xl font-extrabold text-gray-900 mb-2">Looking for drivers near you...</h2>
+          <h2 className="text-xl font-extrabold text-foreground mb-2">Looking for drivers near you...</h2>
           {nearbyDrivers !== null && (
             <p className="text-green-600 text-sm font-semibold">● {nearbyDrivers} driver{nearbyDrivers !== 1 ? 's' : ''} active nearby</p>
           )}
@@ -85,15 +85,15 @@ export default function WaitingOffers() {
 
         {/* Request summary */}
         {request && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Your Request</p>
+          <div className="bg-card rounded-2xl p-4 shadow-sm">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Your Request</p>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-3 h-3 rounded-full bg-forge-orange flex-shrink-0" />
-              <span className="text-sm font-semibold text-gray-900">{request.pickup_address}</span>
+              <span className="text-sm font-semibold text-foreground">{request.pickup_address}</span>
             </div>
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-3 h-3 rounded-full bg-gray-400 flex-shrink-0" />
-              <span className="text-sm font-semibold text-gray-900">{request.dropoff_address}</span>
+              <div className="w-3 h-3 rounded-full bg-muted-foreground flex-shrink-0" />
+              <span className="text-sm font-semibold text-foreground">{request.dropoff_address}</span>
             </div>
             <div className="flex flex-wrap gap-2 items-center">
               <span className="bg-forge-orange/10 text-forge-orange text-xs px-3 py-1 rounded-full font-bold capitalize">
@@ -115,16 +115,16 @@ export default function WaitingOffers() {
             <span className="text-xs text-gray-400 font-medium">{bids.length} so far</span>
           </div>
           {bids.length === 0 ? (
-            <div className="bg-white rounded-2xl p-8 text-center">
+            <div className="bg-card rounded-2xl p-8 text-center">
               <Clock className="w-10 h-10 text-gray-200 mx-auto mb-3" />
               <p className="text-gray-400 text-sm">Driver offers will appear here</p>
             </div>
           ) : (
             <div className="space-y-2">
               {bids.map(bid => (
-                <div key={bid.id} className="bg-white rounded-2xl p-4 flex justify-between items-center border border-gray-100">
+                <div key={bid.id} className="bg-card rounded-2xl p-4 flex justify-between items-center border border-border">
                   <div>
-                    <p className="font-bold text-gray-900 text-sm">{bid.driver_name}</p>
+                    <p className="font-bold text-foreground text-sm">{bid.driver_name}</p>
                     <p className="text-forge-orange font-extrabold text-lg">₦{bid.price?.toLocaleString()}</p>
                   </div>
                   <span className="text-xs text-gray-400">~{bid.eta_min || 4} min away</span>
@@ -148,7 +148,7 @@ export default function WaitingOffers() {
       {/* Cancel Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 bg-black/50 flex items-end z-50">
-          <div className="bg-white w-full rounded-t-3xl p-6 max-w-md mx-auto">
+          <div className="bg-card w-full rounded-t-3xl p-6 max-w-md mx-auto">
             <div className="flex justify-center mb-4">
               <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center">
                 <span className="text-red-500 text-2xl font-bold">!</span>
@@ -157,7 +157,7 @@ export default function WaitingOffers() {
             <button onClick={() => setShowCancelModal(false)} className="absolute top-6 right-6">
               <X className="w-5 h-5 text-gray-400" />
             </button>
-            <h3 className="text-xl font-extrabold text-center mb-2 text-gray-900">Cancel Your Request?</h3>
+            <h3 className="text-xl font-extrabold text-center mb-2 text-foreground">Cancel Your Request?</h3>
             <p className="text-sm text-gray-400 text-center mb-5">Please tell us why you are cancelling. This helps us improve the ForgeRide experience.</p>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Select A Reason</p>
             <div className="space-y-2 mb-4 max-h-56 overflow-auto">

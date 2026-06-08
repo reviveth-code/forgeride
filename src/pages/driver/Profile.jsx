@@ -14,10 +14,10 @@ function CategoryModal({ title, onClose, onSave, saving, children }) {
       className="fixed inset-0 bg-black/40 z-[200] flex flex-col justify-end"
       onClick={e => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto flex flex-col" style={{ maxHeight: '85vh' }}>
+      <div className="bg-card rounded-t-3xl w-full max-w-md mx-auto flex flex-col" style={{ maxHeight: '85vh' }}>
         {/* Header — always visible */}
         <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100 flex-shrink-0">
-          <h2 className="text-base font-extrabold text-gray-900">{title}</h2>
+          <h2 className="text-base font-extrabold text-foreground">{title}</h2>
           <button onClick={onClose} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
             <X className="w-4 h-4 text-gray-500" />
           </button>
@@ -70,7 +70,7 @@ export default function DriverProfile() {
   const handleLogout = () => base44.auth.logout('/');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-forge-navy pt-12 pb-6 px-5 text-center">
         <div className="relative inline-block mb-3">
@@ -124,12 +124,12 @@ export default function DriverProfile() {
       <div className="px-5 -mt-6 space-y-3 pb-8">
         {/* Vehicle Information */}
         <button onClick={() => setShowVehicleSheet(true)}
-          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+          className="w-full bg-card rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
           <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
             <Car className="w-5 h-5 text-forge-orange" />
           </div>
           <div className="flex-1 text-left">
-            <p className="font-semibold text-gray-900 text-sm">Vehicle Information</p>
+            <p className="font-semibold text-foreground text-sm">Vehicle Information</p>
             <p className="text-xs text-gray-400 mt-0.5 capitalize">
               {[user?.vehicle_type, user?.vehicle_model, user?.vehicle_plate].filter(Boolean).join(' • ') || 'Tap to add vehicle details'}
             </p>
@@ -139,12 +139,12 @@ export default function DriverProfile() {
 
         {/* Personal Information */}
         <button onClick={() => setShowEditSheet(true)}
-          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+          className="w-full bg-card rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
           <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
             <Edit2 className="w-5 h-5 text-forge-orange" />
           </div>
           <div className="flex-1 text-left">
-            <p className="font-semibold text-gray-900 text-sm">Personal Information</p>
+            <p className="font-semibold text-foreground text-sm">Personal Information</p>
             <p className="text-xs text-gray-400 mt-0.5">{user?.display_name || user?.full_name || 'Edit your name & phone'}</p>
           </div>
           <ChevronRight className="w-4 h-4 text-gray-300" />
@@ -152,7 +152,7 @@ export default function DriverProfile() {
 
         {/* Privacy & Security */}
         <button onClick={() => setActiveModal('privacy')}
-          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+          className="w-full bg-card rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
           <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
             <Shield className="w-5 h-5 text-forge-orange" />
           </div>
@@ -164,7 +164,7 @@ export default function DriverProfile() {
 
         {/* My Reviews */}
         <button onClick={() => setActiveModal('reviews')}
-          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+          className="w-full bg-card rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
           <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
             <Star className="w-5 h-5 text-forge-orange" />
           </div>
@@ -176,7 +176,7 @@ export default function DriverProfile() {
 
         {/* Logout */}
         <button onClick={() => setShowLogout(true)}
-          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm border border-red-100">
+          className="w-full bg-card rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm border border-red-100">
           <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
             <LogOut className="w-5 h-5 text-red-500" />
           </div>
@@ -185,7 +185,7 @@ export default function DriverProfile() {
 
         {/* Delete Account */}
         <button onClick={() => setShowDeleteDialog(true)}
-          className="w-full bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm border border-red-200">
+          className="w-full bg-card rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm border border-red-200">
           <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
             <Trash2 className="w-5 h-5 text-red-600" />
           </div>
@@ -277,18 +277,18 @@ export default function DriverProfile() {
       {/* Logout confirmation */}
       {showLogout && (
         <div className="fixed inset-0 bg-black/30 flex items-end z-[200]">
-          <div className="bg-white w-full rounded-t-3xl p-6 max-w-md mx-auto">
+          <div className="bg-card w-full rounded-t-3xl p-6 max-w-md mx-auto">
             <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <LogOut className="w-6 h-6 text-forge-orange" />
             </div>
-            <h3 className="text-xl font-extrabold text-center mb-2 text-gray-900">Log Out?</h3>
+            <h3 className="text-xl font-extrabold text-center mb-2 text-foreground">Log Out?</h3>
             <p className="text-sm text-gray-400 text-center mb-2">You will need to log in again to access your account. Any active trips will not be affected.</p>
             <div className="bg-forge-orange/10 border border-forge-orange/20 rounded-2xl px-4 py-3 mb-5 flex items-start gap-2">
               <span className="text-forge-orange text-lg">⚠</span>
               <p className="text-sm text-forge-orange font-medium">You are currently Online. Going offline before logging out is recommended.</p>
             </div>
             <button onClick={handleLogout} className="w-full bg-red-500 text-white font-bold py-4 rounded-2xl text-base mb-3">Yes, Log Out</button>
-            <button onClick={() => setShowLogout(false)} className="w-full border-2 border-gray-200 text-gray-700 font-bold py-4 rounded-2xl text-base">Cancel</button>
+            <button onClick={() => setShowLogout(false)} className="w-full border-2 border-border text-foreground font-bold py-4 rounded-2xl text-base">Cancel</button>
           </div>
         </div>
       )}

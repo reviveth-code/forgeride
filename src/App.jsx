@@ -1,7 +1,9 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import PageTransition from '@/components/PageTransition';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -35,6 +37,7 @@ import ResetPassword from './pages/ResetPassword';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const location = useLocation();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -58,21 +61,22 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <Routes>
-      <Route path="/" element={<Splash />} />
-      <Route path="/journey-map" element={<CustomerJourneyMap />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+    <AnimatePresence mode="wait">
+    <Routes location={location} key={location.pathname}>
+      <Route path="/" element={<PageTransition><Splash /></PageTransition>} />
+      <Route path="/journey-map" element={<PageTransition><CustomerJourneyMap /></PageTransition>} />
+      <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+      <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+      <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+      <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
 
       {/* Passenger standalone screens (no bottom nav) */}
-      <Route path="/passenger/new-request" element={<NewRequest />} />
-      <Route path="/passenger/waiting/:requestId" element={<WaitingOffers />} />
-      <Route path="/passenger/offers/:requestId" element={<DriverOffers />} />
-      <Route path="/passenger/tracking/:tripId" element={<TripTracking />} />
-      <Route path="/passenger/trip-complete/:tripId" element={<PassengerTripComplete />} />
-      <Route path="/passenger/trip-history" element={<TripHistory />} />
+      <Route path="/passenger/new-request" element={<PageTransition><NewRequest /></PageTransition>} />
+      <Route path="/passenger/waiting/:requestId" element={<PageTransition><WaitingOffers /></PageTransition>} />
+      <Route path="/passenger/offers/:requestId" element={<PageTransition><DriverOffers /></PageTransition>} />
+      <Route path="/passenger/tracking/:tripId" element={<PageTransition><TripTracking /></PageTransition>} />
+      <Route path="/passenger/trip-complete/:tripId" element={<PageTransition><PassengerTripComplete /></PageTransition>} />
+      <Route path="/passenger/trip-history" element={<PageTransition><TripHistory /></PageTransition>} />
 
       {/* Passenger layout (bottom nav) */}
       <Route element={<PassengerLayout />}>
@@ -83,10 +87,10 @@ const AuthenticatedApp = () => {
       </Route>
 
       {/* Driver standalone screens (no bottom nav) */}
-      <Route path="/driver/bid/:requestId" element={<PlaceBid />} />
-      <Route path="/driver/bid-submitted/:bidId" element={<BidSubmitted />} />
-      <Route path="/driver/active-trip/:tripId" element={<ActiveTrip />} />
-      <Route path="/driver/trip-complete/:tripId" element={<DriverTripComplete />} />
+      <Route path="/driver/bid/:requestId" element={<PageTransition><PlaceBid /></PageTransition>} />
+      <Route path="/driver/bid-submitted/:bidId" element={<PageTransition><BidSubmitted /></PageTransition>} />
+      <Route path="/driver/active-trip/:tripId" element={<PageTransition><ActiveTrip /></PageTransition>} />
+      <Route path="/driver/trip-complete/:tripId" element={<PageTransition><DriverTripComplete /></PageTransition>} />
 
       {/* Driver layout (bottom nav) */}
       <Route element={<DriverLayout />}>
@@ -98,6 +102,7 @@ const AuthenticatedApp = () => {
 
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </AnimatePresence>
   );
 };
 

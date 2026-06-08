@@ -65,21 +65,21 @@ export default function DriverOffers() {
   const initials = (name) => name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'DR';
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-md mx-auto">
-      <div className="flex items-center gap-4 px-5 py-4 bg-white border-b border-gray-100">
-        <button onClick={() => navigate(-1)}><ArrowLeft className="w-6 h-6 text-gray-700" /></button>
-        <h1 className="text-lg font-bold text-gray-900">Driver Offers</h1>
+    <div className="min-h-screen bg-background max-w-md mx-auto">
+      <div className="flex items-center gap-4 px-5 py-4 bg-card border-b border-border">
+        <button onClick={() => navigate(-1)}><ArrowLeft className="w-6 h-6 text-foreground" /></button>
+        <h1 className="text-lg font-bold text-foreground">Driver Offers</h1>
       </div>
 
       {request && (
-        <div className="bg-white mx-5 mt-4 rounded-2xl p-4 shadow-sm">
+        <div className="bg-card mx-5 mt-4 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-3 h-3 rounded-full bg-forge-orange" />
-            <span className="text-sm font-semibold text-gray-900">{request.pickup_address}</span>
+            <span className="text-sm font-semibold text-foreground">{request.pickup_address}</span>
           </div>
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-3 h-3 rounded-full bg-gray-400" />
-            <span className="text-sm font-semibold text-gray-900">{request.dropoff_address}</span>
+            <div className="w-3 h-3 rounded-full bg-muted-foreground" />
+            <span className="text-sm font-semibold text-foreground">{request.dropoff_address}</span>
           </div>
           <div className="flex flex-wrap gap-3 text-xs text-gray-400 border-t border-gray-100 pt-3">
             <span>{request.request_type === 'person' ? '👤 Person Transport' : '📦 Goods Delivery'}</span>
@@ -91,18 +91,18 @@ export default function DriverOffers() {
 
       <div className="px-5 py-4">
         <div className="flex justify-between items-center mb-4">
-          <p className="font-bold text-gray-900">{bids.length} Offer{bids.length !== 1 ? 's' : ''}</p>
+          <p className="font-bold text-foreground">{bids.length} Offer{bids.length !== 1 ? 's' : ''}</p>
           <span className="text-forge-orange text-sm font-semibold">Sort: Lowest Price ▾</span>
         </div>
 
         {bids.length === 0 ? (
-          <div className="bg-white rounded-2xl p-10 text-center text-gray-400 text-sm">
+          <div className="bg-card rounded-2xl p-10 text-center text-muted-foreground text-sm">
             No offers yet. Check back soon!
           </div>
         ) : (
           <div className="space-y-3">
             {bids.map((bid, i) => (
-              <div key={bid.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <div key={bid.id} className="bg-card rounded-2xl p-4 shadow-sm border border-border">
                 {i === 0 && (
                   <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">BEST PRICE</span>
                 )}
@@ -111,7 +111,7 @@ export default function DriverOffers() {
                     {initials(bid.driver_name)}
                   </div>
                   <div className="flex-1">
-                    <p className="font-bold text-gray-900 text-sm">{bid.driver_name}</p>
+                    <p className="font-bold text-foreground text-sm">{bid.driver_name}</p>
                     <div className="flex items-center gap-1 mt-0.5">
                       <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
                       <span className="text-xs text-gray-500">{bid.driver_rating ?? 0}</span>

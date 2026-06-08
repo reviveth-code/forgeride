@@ -94,9 +94,9 @@ export default function TripTracking() {
 
   return (
     <div className="min-h-screen flex flex-col max-w-md mx-auto">
-      <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-gray-100 z-10 relative">
-        <button onClick={() => navigate('/passenger')}><ArrowLeft className="w-6 h-6 text-gray-700" /></button>
-        <h1 className="text-lg font-bold text-gray-900">Pick up in Progress</h1>
+      <div className="flex items-center justify-between px-5 py-4 bg-card border-b border-border z-10 relative">
+        <button onClick={() => navigate('/passenger')}><ArrowLeft className="w-6 h-6 text-foreground" /></button>
+        <h1 className="text-lg font-bold text-foreground">Pick up in Progress</h1>
         {driverProfile?.phone ? (
           <a href={`tel:${driverProfile.phone}`} className="w-10 h-10 bg-forge-orange rounded-full flex items-center justify-center shadow">
             <Phone className="w-5 h-5 text-white" />
@@ -132,15 +132,15 @@ export default function TripTracking() {
         </MapContainer>
         {/* Live pulse indicator */}
         {trip?.driver_lat && (
-          <div className="absolute top-3 left-3 z-[1000] bg-white rounded-full px-3 py-1.5 shadow-lg flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs font-bold text-gray-700">Live Tracking</span>
+          <div className="absolute top-3 left-3 z-[1000] bg-card rounded-full px-3 py-1.5 shadow-lg flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-xs font-bold text-foreground">Live Tracking</span>
           </div>
         )}
       </div>
 
       {/* Driver info bottom card */}
-      <div className="bg-white border-t border-gray-100 p-5 shadow-lg">
+      <div className="bg-card border-t border-border p-5 shadow-lg">
         {trip ? (
           <>
             <div className="flex items-center gap-4 mb-4">
@@ -148,7 +148,7 @@ export default function TripTracking() {
                 {initials(trip.driver_name)}
               </div>
               <div className="flex-1">
-                <p className="font-bold text-gray-900 text-base">{trip.driver_name}</p>
+                <p className="font-bold text-foreground text-base">{trip.driver_name}</p>
                 {(() => {
                   const parts = [
                     driverProfile?.vehicle_type,
@@ -173,11 +173,11 @@ export default function TripTracking() {
             </div>
             <div className="grid grid-cols-3 gap-4 text-center mb-4">
               <div>
-                <p className="text-lg font-extrabold text-gray-900">{liveEtaMin != null ? `~${liveEtaMin} min` : '—'}</p>
+                <p className="text-lg font-extrabold text-foreground">{liveEtaMin != null ? `~${liveEtaMin} min` : '—'}</p>
                 <p className="text-xs text-gray-400 font-medium uppercase">ETA</p>
               </div>
               <div>
-                <p className="text-lg font-extrabold text-gray-900">{liveDistKm != null ? `${liveDistKm} km` : '—'}</p>
+                <p className="text-lg font-extrabold text-foreground">{liveDistKm != null ? `${liveDistKm} km` : '—'}</p>
                 <p className="text-xs text-gray-400 font-medium uppercase">{trip.status === 'in_progress' ? 'To Dropoff' : 'To Pickup'}</p>
               </div>
               <div>

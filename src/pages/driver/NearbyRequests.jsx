@@ -142,7 +142,7 @@ export default function NearbyRequests() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen bg-gray-50"
+      className="min-h-screen bg-background"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -156,8 +156,8 @@ export default function NearbyRequests() {
           <RefreshCw className={`w-5 h-5 text-forge-orange ${refreshing ? 'animate-spin' : ''}`} />
         </div>
       )}
-      <div className="bg-white px-5 pt-8 pb-4 border-b border-gray-100">
-        <h1 className="text-2xl font-extrabold text-gray-900 mb-3">Nearby Requests</h1>
+      <div className="bg-card px-5 pt-8 pb-4 border-b border-border">
+        <h1 className="text-2xl font-extrabold text-foreground mb-3">Nearby Requests</h1>
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <MapPin className="w-4 h-4 text-forge-orange" />
           <span>Showing requests within 5km of your location</span>
@@ -180,7 +180,7 @@ export default function NearbyRequests() {
 
       <div className="px-5 space-y-3 pb-6">
         {filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl p-10 text-center text-gray-400 text-sm mt-2">
+          <div className="bg-card rounded-2xl p-10 text-center text-muted-foreground text-sm mt-2">
             No requests found. Check back soon!
           </div>
         ) : (

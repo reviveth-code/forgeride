@@ -56,8 +56,8 @@ export default function DriverDashboard() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="bg-white px-5 pt-8 pb-5">
+    <div className="bg-background min-h-screen">
+      <div className="bg-card px-5 pt-8 pb-5">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-forge-navy rounded-full overflow-hidden flex items-center justify-center text-white font-extrabold flex-shrink-0">
@@ -68,7 +68,7 @@ export default function DriverDashboard() {
             </div>
             <div>
               <p className="text-xs text-gray-400">Welcome back,</p>
-              <h1 className="text-xl font-extrabold text-gray-900">{user?.display_name || user?.full_name || 'Driver'} 🔥</h1>
+              <h1 className="text-xl font-extrabold text-foreground">{user?.display_name || user?.full_name || 'Driver'} 🔥</h1>
             </div>
           </div>
           <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
@@ -98,9 +98,9 @@ export default function DriverDashboard() {
 
       <div className="px-5 py-4 space-y-4">
         {/* Today's Summary */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <div className="bg-card rounded-2xl p-5 shadow-sm">
           <div className="flex justify-between mb-4">
-            <p className="font-bold text-gray-900">Today's Summary</p>
+            <p className="font-bold text-foreground">Today's Summary</p>
             <Link to="/driver/history" className="text-forge-orange text-sm font-semibold">View All</Link>
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">
@@ -109,13 +109,13 @@ export default function DriverDashboard() {
               <p className="text-xs text-gray-400 font-medium uppercase mt-0.5">Earnings</p>
             </div>
             <div>
-              <p className="text-xl font-extrabold text-gray-900">{trips.length}</p>
+              <p className="text-xl font-extrabold text-foreground">{trips.length}</p>
               <p className="text-xs text-gray-400 font-medium uppercase mt-0.5">Trips Done</p>
             </div>
             <div>
               <div className="flex items-center justify-center gap-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <p className="text-xl font-extrabold text-gray-900">—</p>
+                <p className="text-xl font-extrabold text-foreground">—</p>
               </div>
               <p className="text-xs text-gray-400 font-medium uppercase mt-0.5">Rating</p>
             </div>
@@ -129,13 +129,13 @@ export default function DriverDashboard() {
             <span className="text-forge-orange text-sm font-bold">{requests.length} available</span>
           </div>
           {requests.length === 0 ? (
-            <div className="bg-white rounded-2xl p-8 text-center text-gray-400 text-sm shadow-sm">
+            <div className="bg-card rounded-2xl p-8 text-center text-muted-foreground text-sm shadow-sm">
               No nearby requests right now.
             </div>
           ) : (
             <div className="space-y-3">
               {requests.slice(0, 3).map(req => (
-                <div key={req.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                <div key={req.id} className="bg-card rounded-2xl p-4 shadow-sm border border-border">
                   <div className="flex justify-between items-center mb-2">
                     <div className="flex items-center gap-2">
                       {req.request_type === 'person' ? <User className="w-4 h-4 text-forge-orange" /> : <Package className="w-4 h-4 text-forge-orange" />}

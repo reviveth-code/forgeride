@@ -63,10 +63,10 @@ export default function NewRequest() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white max-w-md mx-auto">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-        <button onClick={() => navigate(-1)}><X className="w-6 h-6 text-gray-600" /></button>
-        <h1 className="text-lg font-bold text-gray-900">New Request</h1>
+    <div className="min-h-screen flex flex-col bg-background max-w-md mx-auto">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-card">
+        <button onClick={() => navigate(-1)}><X className="w-6 h-6 text-foreground" /></button>
+        <h1 className="text-lg font-bold text-foreground">New Request</h1>
         <div className="w-6" />
       </div>
 

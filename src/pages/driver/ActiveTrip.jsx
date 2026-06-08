@@ -56,12 +56,12 @@ export default function ActiveTrip() {
     <div className="min-h-screen flex flex-col max-w-md mx-auto relative">
       {/* Overlay top bar */}
       <div className="absolute top-0 left-0 right-0 z-10 px-5 py-4 flex items-center justify-between">
-        <button className="w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center">
-          <Menu className="w-5 h-5 text-gray-700" />
+        <button className="w-11 h-11 bg-card rounded-full shadow-lg flex items-center justify-center">
+          <Menu className="w-5 h-5 text-foreground" />
         </button>
-        <div className="bg-white rounded-full px-5 py-2.5 shadow-lg flex items-center gap-2">
+        <div className="bg-card rounded-full px-5 py-2.5 shadow-lg flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-sm font-bold text-gray-900">Trip Active</span>
+          <span className="text-sm font-bold text-foreground">Trip Active</span>
         </div>
         <button className="w-11 h-11 bg-forge-orange rounded-full shadow-lg flex items-center justify-center">
           <Phone className="w-5 h-5 text-white" />
@@ -91,7 +91,7 @@ export default function ActiveTrip() {
       </div>
 
       {/* Bottom card */}
-      <div className="bg-white p-5 border-t border-gray-100 shadow-2xl">
+      <div className="bg-card p-5 border-t border-border shadow-2xl">
         {trip ? (
           <>
             <div className="flex items-center gap-3 mb-4">
@@ -99,7 +99,7 @@ export default function ActiveTrip() {
                 {(trip?.is_for_someone_else ? trip?.recipient_name : trip?.passenger_name)?.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() || 'PA'}
               </div>
               <div className="flex-1">
-                <p className="font-extrabold text-gray-900">
+                <p className="font-extrabold text-foreground">
                   {trip?.is_for_someone_else ? trip?.recipient_name : (trip?.passenger_name || 'Passenger')}
                 </p>
                 {trip?.is_for_someone_else && (
@@ -112,13 +112,13 @@ export default function ActiveTrip() {
               </button>
             </div>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="bg-gray-50 rounded-2xl py-3 text-center">
-                <p className="text-xs text-gray-400 font-medium uppercase">ETA</p>
-                <p className="text-sm font-bold text-gray-900">{liveEtaMin != null ? `~${liveEtaMin} min` : '—'}</p>
+              <div className="bg-background rounded-2xl py-3 text-center">
+                <p className="text-xs text-muted-foreground font-medium uppercase">ETA</p>
+                <p className="text-sm font-bold text-foreground">{liveEtaMin != null ? `~${liveEtaMin} min` : '—'}</p>
               </div>
-              <div className="bg-gray-50 rounded-2xl py-3 text-center">
-                <p className="text-xs text-gray-400 font-medium uppercase">{trip?.status === 'in_progress' ? 'To Dropoff' : 'To Pickup'}</p>
-                <p className="text-sm font-bold text-gray-900">{liveDistKm != null ? `${liveDistKm} km` : '—'}</p>
+              <div className="bg-background rounded-2xl py-3 text-center">
+                <p className="text-xs text-muted-foreground font-medium uppercase">{trip?.status === 'in_progress' ? 'To Dropoff' : 'To Pickup'}</p>
+                <p className="text-sm font-bold text-foreground">{liveDistKm != null ? `${liveDistKm} km` : '—'}</p>
               </div>
               <div className="col-span-2 bg-forge-orange/10 rounded-2xl py-3 text-center">
                 <p className="text-xs text-gray-400 font-medium uppercase">Earnings</p>
