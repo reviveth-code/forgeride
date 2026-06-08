@@ -14,7 +14,7 @@ const VEHICLE_EMOJI = {
 };
 
 const RADIUS_KM = 3;
-const POLL_INTERVAL_MS = 5000;
+const POLL_INTERVAL_MS = 1000;
 
 function makeDriverIcon(emoji) {
   return L.divIcon({
