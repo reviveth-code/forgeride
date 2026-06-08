@@ -372,10 +372,10 @@ export default function CustomerJourneyMap() {
                     <h3 className="text-base font-extrabold text-gray-900">{stage.name}</h3>
                   </div>
 
-                  {/* 4 columns on desktop, stacked on mobile */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x-0 lg:divide-x divide-gray-100">
+                  {/* Stacked on mobile, 4-col on large screens */}
+                  <div className="flex flex-col lg:flex-row lg:divide-x divide-gray-100">
                     {/* Steps */}
-                    <div className="p-4 sm:border-b lg:border-b-0 sm:col-span-2 lg:col-span-1">
+                    <div className="p-4 border-b border-gray-100 lg:border-b-0 lg:flex-1">
                       <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: persona.color }}>Steps</p>
                       <ol className="space-y-2">
                         {stage.steps.map((s, i) => (
@@ -383,14 +383,14 @@ export default function CustomerJourneyMap() {
                             <span className="w-4 h-4 rounded-full text-white flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5" style={{ backgroundColor: persona.color }}>
                               {i + 1}
                             </span>
-                            {s}
+                            <span>{s}</span>
                           </li>
                         ))}
                       </ol>
                     </div>
 
                     {/* Touchpoints */}
-                    <div className="p-4 sm:border-b lg:border-b-0 sm:border-l lg:border-l divide-gray-100">
+                    <div className="p-4 border-b border-gray-100 lg:border-b-0 lg:flex-1">
                       <p className="text-xs font-bold uppercase tracking-wider text-blue-500 mb-3">Touchpoints</p>
                       <div className="space-y-1.5">
                         {stage.touchpoints.map((t, i) => (
@@ -402,26 +402,26 @@ export default function CustomerJourneyMap() {
                     </div>
 
                     {/* Pain Points */}
-                    <div className="p-4 sm:border-t-0 lg:border-l divide-gray-100">
+                    <div className="p-4 border-b border-gray-100 lg:border-b-0 lg:flex-1">
                       <p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-3">Pain Points</p>
                       <div className="space-y-1.5">
                         {stage.painPoints.map((p, i) => (
                           <div key={i} className="text-xs text-red-700 bg-red-50 rounded-lg px-2.5 py-1.5 flex items-start gap-1.5">
                             <span className="mt-0.5 flex-shrink-0">⚠</span>
-                            {p}
+                            <span>{p}</span>
                           </div>
                         ))}
                       </div>
                     </div>
 
                     {/* Opportunities */}
-                    <div className="p-4 sm:border-l lg:border-l divide-gray-100">
+                    <div className="p-4 lg:flex-1">
                       <p className="text-xs font-bold uppercase tracking-wider text-green-600 mb-3">Opportunities</p>
                       <div className="space-y-1.5">
                         {stage.opportunities.map((o, i) => (
                           <div key={i} className="text-xs text-green-800 bg-green-50 rounded-lg px-2.5 py-1.5 flex items-start gap-1.5">
                             <span className="mt-0.5 flex-shrink-0">💡</span>
-                            {o}
+                            <span>{o}</span>
                           </div>
                         ))}
                       </div>
