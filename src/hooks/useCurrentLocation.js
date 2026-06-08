@@ -15,15 +15,6 @@ async function reverseGeocode(lat, lon) {
   return parts.length ? parts.join(', ') : data.display_name?.split(',').slice(0, 2).join(', ') || 'Location found';
 }
 
-async function getIPLocation() {
-  const res = await fetch('https://ipapi.co/json/');
-  const data = await res.json();
-  if (data.latitude && data.longitude) {
-    return { lat: data.latitude, lng: data.longitude };
-  }
-  throw new Error('IP location unavailable');
-}
-
 export default function useCurrentLocation() {
   const [address, setAddress] = useState(null);
   const [coords, setCoords] = useState(null);
@@ -32,42 +23,27 @@ export default function useCurrentLocation() {
   useEffect(() => {
     let cancelled = false;
 
-    async function resolve() {
-      // 1. Try GPS first (with 8s timeout)
-      if (navigator.geolocation) {
-        try {
-          const pos = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0,
-            });
-          });
-          if (cancelled) return;
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          setCoords({ lat, lng });
-          const addr = await reverseGeocode(lat, lng);
-          if (!cancelled) { setAddress(addr); setLoading(false); }
-          return;
-        } catch {
-          // GPS failed — fall through to IP-based
-        }
-      }
+    if (!navigator.geolocation) {
+      setAddress('Location unavailable');
+      setLoading(false);
+      return;
+    }
 
-      // 2. Fallback: IP-based geolocation
-      try {
-        const { lat, lng } = await getIPLocation();
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
         if (cancelled) return;
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
         setCoords({ lat, lng });
         const addr = await reverseGeocode(lat, lng);
         if (!cancelled) { setAddress(addr); setLoading(false); }
-      } catch {
+      },
+      () => {
         if (!cancelled) { setAddress('Location unavailable'); setLoading(false); }
-      }
-    }
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
 
-    resolve();
     return () => { cancelled = true; };
   }, []);
 
