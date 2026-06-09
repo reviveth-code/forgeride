@@ -30,6 +30,7 @@ import ActiveTrip from './pages/driver/ActiveTrip';
 import DriverTripComplete from './pages/driver/TripComplete';
 import DriverHistory from './pages/driver/History';
 import DriverProfile from './pages/driver/Profile';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -69,6 +70,7 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
       <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
       <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
+      <Route path="/privacy-policy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
 
       {/* Passenger standalone screens (no bottom nav) */}
       <Route path="/passenger/new-request" element={<PageTransition><NewRequest /></PageTransition>} />
