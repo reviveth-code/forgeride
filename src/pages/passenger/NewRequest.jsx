@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { X, User, Package, Loader2, Users } from 'lucide-react';
+import { X, User, Package, Loader2, Users, LocateFixed } from 'lucide-react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import '@/utils/leaflet';
 import LocationSearchInput from '@/components/LocationSearchInput';
@@ -22,12 +22,40 @@ export default function NewRequest() {
   const [type, setType] = useState('person');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [user, setUser] = useState(null);
   const [forSomeoneElse, setForSomeoneElse] = useState(false);
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
 
   useEffect(() => { base44.auth.me().then(setUser); }, []);
+
+  // Auto-detect pickup location on mount
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${coords.latitude}&lon=${coords.longitude}&format=json`
+          );
+          const data = await res.json();
+          setPickupLoc({
+            address: data.display_name || `${coords.latitude}, ${coords.longitude}`,
+            lat: coords.latitude,
+            lng: coords.longitude,
+          });
+        } catch {
+          // silently fail
+        } finally {
+          setLocating(false);
+        }
+      },
+      () => setLocating(false),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
 
   const distanceKm = pickupLoc && dropoffLoc
     ? haversine(pickupLoc.lat, pickupLoc.lng, dropoffLoc.lat, dropoffLoc.lng)
@@ -82,12 +110,19 @@ export default function NewRequest() {
       <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4 flex-1 overflow-auto pb-8">
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Route Details</p>
 
-        <LocationSearchInput
-          placeholder="Pickup location"
-          value={pickupLoc}
-          onChange={setPickupLoc}
-          dotColor="bg-forge-orange"
-        />
+        <div className="relative">
+          <LocationSearchInput
+            placeholder={locating ? 'Detecting your location…' : 'Pickup location'}
+            value={pickupLoc}
+            onChange={setPickupLoc}
+            dotColor="bg-forge-orange"
+          />
+          {locating && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-forge-orange font-semibold pointer-events-none">
+              <Loader2 className="w-4 h-4 animate-spin" />
+            </div>
+          )}
+        </div>
 
         <LocationSearchInput
           placeholder="Where are you going?"
