@@ -80,16 +80,23 @@ export default function DriversNearbyCard({ userLat, userLng }) {
   const initialLoadDone = useRef(false);
 
   const fetchDrivers = async () => {
+    const isAuthed = await base44.auth.isAuthenticated();
+    if (!isAuthed) return;
     if (!initialLoadDone.current) setLoading(true);
-    const res = await base44.functions.invoke('getOnlineDrivers', {
-      userLat: userLat || null,
-      userLng: userLng || null,
-      radiusKm: RADIUS_KM,
-    });
-    setDrivers(res.data?.drivers || []);
-    if (!initialLoadDone.current) {
-      setLoading(false);
-      initialLoadDone.current = true;
+    try {
+      const res = await base44.functions.invoke('getOnlineDrivers', {
+        userLat: userLat || null,
+        userLng: userLng || null,
+        radiusKm: RADIUS_KM,
+      });
+      setDrivers(res.data?.drivers || []);
+    } catch {
+      // silently fail — user may have just logged out or network is briefly unavailable
+    } finally {
+      if (!initialLoadDone.current) {
+        setLoading(false);
+        initialLoadDone.current = true;
+      }
     }
   };
 
