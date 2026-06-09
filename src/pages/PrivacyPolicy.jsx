@@ -137,7 +137,7 @@ export default function PrivacyPolicy() {
           </p>
           <div className="mt-2 bg-gray-50 rounded-xl p-4 text-sm">
             <p className="font-bold text-forge-navy">ForgeRide Support</p>
-            <p className="text-gray-600 mt-1">📧 support@forgeride.com</p>
+            <p className="text-gray-600 mt-1">📧 forgerides@gmail.com</p>
             <p className="text-gray-600">🌍 Nigeria</p>
           </div>
         </section>
