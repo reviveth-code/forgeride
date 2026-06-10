@@ -4,23 +4,55 @@ import { base44 } from '@/api/base44Client';
 import { Bell, Star, User, Package, MapPin } from 'lucide-react';
 import useCurrentLocation from '@/hooks/useCurrentLocation';
 
+const playChime = () => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+  } catch {}
+};
+
 export default function DriverDashboard() {
   const [user, setUser] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
   const [requests, setRequests] = useState([]);
   const [trips, setTrips] = useState([]);
+  const [avgRating, setAvgRating] = useState(null);
   const navigate = useNavigate();
   const { address: currentAddress, loading: locationLoading } = useCurrentLocation();
 
-  const REQUEST_TTL_MS = 2 * 60 * 1000;
+  const REQUEST_TTL_MS = 3 * 60 * 1000;
   const loadRequests = () => base44.entities.RideRequest.filter({ status: 'open' }, '-created_date', 5)
-    .then(all => setRequests(all.filter(r => (Date.now() - new Date(r.created_date).getTime()) < REQUEST_TTL_MS)));
+    .then(all => {
+      const fresh = all.filter(r => {
+        const ds = typeof r.created_date === 'string' && !r.created_date.endsWith('Z') ? r.created_date + 'Z' : r.created_date;
+        return (Date.now() - new Date(ds).getTime()) < REQUEST_TTL_MS;
+      });
+      setRequests(prev => {
+        if (fresh.length > prev.length) playChime();
+        return fresh;
+      });
+    });
 
   useEffect(() => {
     base44.auth.me().then(u => {
       setUser(u);
       setIsOnline(u?.is_online || false);
       base44.entities.Trip.filter({ driver_id: u.email, status: 'completed' }, '-created_date', 100).then(setTrips);
+      base44.entities.Review.filter({ reviewee_id: u.email }).then(reviews => {
+        if (reviews.length > 0) {
+          const avg = +(reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length).toFixed(1);
+          setAvgRating(avg);
+        }
+      });
     }).catch(() => navigate('/login'));
     loadRequests();
     const unsub = base44.entities.RideRequest.subscribe(() => loadRequests());
@@ -115,7 +147,7 @@ export default function DriverDashboard() {
             <div>
               <div className="flex items-center justify-center gap-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <p className="text-xl font-extrabold text-foreground">—</p>
+                <p className="text-xl font-extrabold text-foreground">{avgRating ?? '—'}</p>
               </div>
               <p className="text-xs text-gray-400 font-medium uppercase mt-0.5">Rating</p>
             </div>
