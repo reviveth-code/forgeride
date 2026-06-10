@@ -19,6 +19,8 @@ const playChime = () => {
   } catch {}
 };
 
+const REQUEST_TTL_MS = 3 * 60 * 1000; // must match driver side
+
 const CANCEL_REASONS = [
   'Driver is taking too long to arrive',
   'I found another ride',
@@ -36,6 +38,8 @@ export default function WaitingOffers() {
   const [nearbyDrivers, setNearbyDrivers] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [expired, setExpired] = useState(false);
+  const [secsLeft, setSecsLeft] = useState(null);
   const prevBidCountRef = useRef(0);
 
   const loadBids = () => base44.entities.Bid.filter({ request_id: requestId, status: 'pending' }).then(newBids => {
@@ -45,10 +49,24 @@ export default function WaitingOffers() {
   });
 
   useEffect(() => {
-    base44.entities.RideRequest.get(requestId).then(setRequest);
+    base44.entities.RideRequest.get(requestId).then(req => {
+      setRequest(req);
+      // Start countdown timer
+      const tick = () => {
+        const elapsed = Date.now() - new Date(req.created_date).getTime();
+        const remaining = Math.max(0, Math.floor((REQUEST_TTL_MS - elapsed) / 1000));
+        setSecsLeft(remaining);
+        if (remaining === 0) {
+          setExpired(true);
+          base44.entities.RideRequest.update(requestId, { status: 'cancelled' });
+        }
+      };
+      tick();
+      const timer = setInterval(tick, 1000);
+      return () => clearInterval(timer);
+    });
     loadBids();
     const unsub = base44.entities.Bid.subscribe(() => loadBids());
-    // Count online drivers
     base44.entities.Bid.filter({ status: 'pending' }).then(allBids => {
       const uniqueDrivers = new Set(allBids.map(b => b.driver_id));
       setNearbyDrivers(uniqueDrivers.size || null);
@@ -60,6 +78,30 @@ export default function WaitingOffers() {
     await base44.entities.RideRequest.update(requestId, { status: 'cancelled' });
     navigate('/passenger');
   };
+
+  if (expired) {
+    return (
+      <div className="min-h-screen bg-background max-w-md mx-auto flex flex-col items-center justify-center px-5 text-center">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+          <Clock className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="text-xl font-extrabold text-foreground mb-2">Request Expired</h2>
+        <p className="text-gray-400 text-sm mb-6">No driver accepted your request in time. Please post a new request to try again.</p>
+        <button onClick={() => navigate('/passenger/new-request')}
+          className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl text-base mb-3">
+          Post New Request
+        </button>
+        <button onClick={() => navigate('/passenger')}
+          className="w-full border-2 border-border text-foreground font-bold py-4 rounded-2xl text-base">
+          Go Home
+        </button>
+      </div>
+    );
+  }
+
+  const mm = secsLeft != null ? String(Math.floor(secsLeft / 60)).padStart(2, '0') : '--';
+  const ss = secsLeft != null ? String(secsLeft % 60).padStart(2, '0') : '--';
+  const urgent = secsLeft != null && secsLeft < 30;
 
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto">
@@ -80,7 +122,10 @@ export default function WaitingOffers() {
           {nearbyDrivers !== null && (
             <p className="text-green-600 text-sm font-semibold">● {nearbyDrivers} driver{nearbyDrivers !== 1 ? 's' : ''} active nearby</p>
           )}
-          <p className="text-gray-400 text-xs mt-1">Request posted just now</p>
+          <div className={`mt-2 flex items-center gap-1.5 text-sm font-bold ${urgent ? 'text-red-500' : 'text-gray-500'}`}>
+            <Clock className="w-4 h-4" />
+            <span>Expires in {mm}:{ss}</span>
+          </div>
         </div>
 
         {/* Request summary */}
