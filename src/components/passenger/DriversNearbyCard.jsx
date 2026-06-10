@@ -14,7 +14,7 @@ const VEHICLE_EMOJI = {
 };
 
 const RADIUS_KM = 10;
-const POLL_INTERVAL_MS = 10000; // 10 seconds
+const POLL_INTERVAL_MS = 30000; // 30 seconds
 
 function makeDriverIcon(emoji) {
   return L.divIcon({
@@ -78,33 +78,40 @@ export default function DriversNearbyCard({ userLat, userLng }) {
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
   const initialLoadDone = useRef(false);
+  const coordsRef = useRef({ userLat, userLng });
 
-  const fetchDrivers = async () => {
-    const isAuthed = await base44.auth.isAuthenticated();
-    if (!isAuthed) return;
-    if (!initialLoadDone.current) setLoading(true);
-    try {
-      const res = await base44.functions.invoke('getOnlineDrivers', {
-        userLat: userLat || null,
-        userLng: userLng || null,
-        radiusKm: RADIUS_KM,
-      });
-      setDrivers(res.data?.drivers || []);
-    } catch {
-      // silently fail — user may have just logged out or network is briefly unavailable
-    } finally {
-      if (!initialLoadDone.current) {
-        setLoading(false);
-        initialLoadDone.current = true;
-      }
-    }
-  };
+  // Keep ref in sync without triggering effect re-runs
+  useEffect(() => {
+    coordsRef.current = { userLat, userLng };
+  }, [userLat, userLng]);
 
   useEffect(() => {
+    const fetchDrivers = async () => {
+      const isAuthed = await base44.auth.isAuthenticated();
+      if (!isAuthed) return;
+      if (!initialLoadDone.current) setLoading(true);
+      try {
+        const { userLat: lat, userLng: lng } = coordsRef.current;
+        const res = await base44.functions.invoke('getOnlineDrivers', {
+          userLat: lat || null,
+          userLng: lng || null,
+          radiusKm: RADIUS_KM,
+        });
+        setDrivers(res.data?.drivers || []);
+      } catch {
+        // silently fail
+      } finally {
+        if (!initialLoadDone.current) {
+          setLoading(false);
+          initialLoadDone.current = true;
+        }
+      }
+    };
+
     fetchDrivers();
     const poll = setInterval(fetchDrivers, POLL_INTERVAL_MS);
     return () => clearInterval(poll);
-  }, [userLat, userLng]);
+  }, []); // only runs once — coords are read from ref
 
   const defaultCenter = userLat && userLng
     ? [userLat, userLng]
