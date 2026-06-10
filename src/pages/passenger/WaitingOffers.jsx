@@ -60,12 +60,13 @@ export default function WaitingOffers() {
 
       const createdAt = new Date(req.created_date).getTime();
 
-      // Validate the timestamp — if it's invalid or in the future, don't start timer
-      if (isNaN(createdAt) || createdAt > Date.now()) return;
+      // Guard against unparseable dates only
+      if (isNaN(createdAt)) return;
 
       const tick = () => {
         const now = Date.now();
-        const elapsed = now - createdAt;
+        // Use createdAt as the anchor; clamp so a future server timestamp doesn't go negative
+        const elapsed = Math.max(0, now - createdAt);
         const remaining = Math.max(0, Math.floor((REQUEST_TTL_MS - elapsed) / 1000));
         setSecsLeft(remaining);
 
