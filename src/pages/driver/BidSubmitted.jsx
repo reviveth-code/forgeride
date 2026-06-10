@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Clock } from 'lucide-react';
+
+const BID_TTL_MS = 3 * 60 * 1000;
 
 export default function BidSubmitted() {
   const { bidId } = useParams();
@@ -9,6 +11,8 @@ export default function BidSubmitted() {
   const [bid, setBid] = useState(null);
   const [request, setRequest] = useState(null);
   const [passengerViewing, setPassengerViewing] = useState(false);
+  const [secsLeft, setSecsLeft] = useState(180);
+  const [expired, setExpired] = useState(false);
 
   const goToTrip = (attempts = 0) => {
     base44.entities.Trip.filter({ bid_id: bidId }).then(trips => {
@@ -26,10 +30,28 @@ export default function BidSubmitted() {
       if (bid?.status === 'accepted') goToTrip();
       if (bid?.request_id) {
         base44.entities.RideRequest.get(bid.request_id).then(setRequest);
-        // If the request is in "matched" status the passenger clicked into offers
         base44.entities.RideRequest.get(bid.request_id).then(r => {
           setPassengerViewing(r?.status === 'open' || r?.status === 'matched');
         });
+      }
+
+      // Countdown based on bid's own created_date
+      if (bid?.created_date) {
+        let hasExpired = false;
+        const timer = setInterval(() => {
+          const raw = bid.created_date;
+          const dateStr = typeof raw === 'string' && !raw.endsWith('Z') ? raw + 'Z' : raw;
+          const elapsed = Date.now() - new Date(dateStr).getTime();
+          const remaining = Math.max(0, Math.floor((BID_TTL_MS - elapsed) / 1000));
+          setSecsLeft(remaining);
+          if (remaining === 0 && !hasExpired) {
+            hasExpired = true;
+            setExpired(true);
+            clearInterval(timer);
+            base44.entities.Bid.update(bidId, { status: 'cancelled' });
+          }
+        }, 1000);
+        return () => clearInterval(timer);
       }
     });
 
@@ -63,6 +85,26 @@ export default function BidSubmitted() {
     await base44.entities.Bid.update(bidId, { status: 'cancelled' });
     navigate('/driver/requests');
   };
+
+  const mm = String(Math.floor(secsLeft / 60)).padStart(2, '0');
+  const ss = String(secsLeft % 60).padStart(2, '0');
+  const urgent = secsLeft < 30;
+
+  if (expired) {
+    return (
+      <div className="min-h-screen bg-forge-navy flex flex-col items-center justify-center px-5 text-center max-w-md mx-auto">
+        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+          <Clock className="w-8 h-8 text-red-400" />
+        </div>
+        <h2 className="text-xl font-extrabold text-white mb-2">Bid Expired</h2>
+        <p className="text-white/50 text-sm mb-6">The passenger didn't respond in time. You can go back and place a new bid.</p>
+        <button onClick={() => navigate('/driver/requests')}
+          className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl text-base">
+          Back to Requests
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-forge-navy flex flex-col max-w-md mx-auto">
@@ -98,6 +140,10 @@ export default function BidSubmitted() {
               Monitoring in background
             </p>
           )}
+          <div className={`mt-3 flex items-center gap-2 text-sm font-bold ${urgent ? 'text-red-400' : 'text-white/60'}`}>
+            <Clock className="w-4 h-4" />
+            <span>Bid expires in <span className="font-extrabold">{mm}:{ss}</span></span>
+          </div>
           {bid && (
             <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
               <div className="flex items-center gap-2 text-white/60 text-sm">
