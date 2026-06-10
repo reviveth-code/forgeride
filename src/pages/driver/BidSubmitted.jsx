@@ -35,14 +35,16 @@ export default function BidSubmitted() {
         });
       }
 
-      // Countdown based on bid's own created_date
+      // Countdown based on bid's own created_date — same logic as passenger side
       if (bid?.created_date) {
         let hasExpired = false;
+        const raw = bid.created_date;
+        const dateStr = typeof raw === 'string' && !raw.endsWith('Z') ? raw + 'Z' : raw;
+        const getRemaining = () => Math.max(0, Math.floor((BID_TTL_MS - (Date.now() - new Date(dateStr).getTime())) / 1000));
+        // Set immediately so driver and passenger start from the same value
+        setSecsLeft(getRemaining());
         const timer = setInterval(() => {
-          const raw = bid.created_date;
-          const dateStr = typeof raw === 'string' && !raw.endsWith('Z') ? raw + 'Z' : raw;
-          const elapsed = Date.now() - new Date(dateStr).getTime();
-          const remaining = Math.max(0, Math.floor((BID_TTL_MS - elapsed) / 1000));
+          const remaining = getRemaining();
           setSecsLeft(remaining);
           if (remaining === 0 && !hasExpired) {
             hasExpired = true;
