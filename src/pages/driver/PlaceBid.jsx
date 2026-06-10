@@ -24,7 +24,7 @@ function haversine(lat1, lng1, lat2, lng2) {
   return +(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
 }
 
-const REQUEST_TTL_MS = 2 * 60 * 1000;
+const REQUEST_TTL_MS = 3 * 60 * 1000;
 
 export default function PlaceBid() {
   const { requestId } = useParams();
@@ -35,7 +35,7 @@ export default function PlaceBid() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [driverPos, setDriverPos] = useState(null);
-  const [secsLeft, setSecsLeft] = useState(120);
+  const [secsLeft, setSecsLeft] = useState(180);
   const [existingBid, setExistingBid] = useState(null);
   const [competitorCount, setCompetitorCount] = useState(0);
   const [showPricePicker, setShowPricePicker] = useState(false);
@@ -215,7 +215,7 @@ export default function PlaceBid() {
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : `✓ Submit Bid — ₦${price.toLocaleString()}`}
         </button>
         <p className="text-center text-xs text-gray-400">Your bid is visible to the passenger immediately. Only the passenger can confirm.</p>
-        <p className="text-center text-xs text-forge-orange">You have 2 minutes to edit this bid after submission.</p>
+        <p className="text-center text-xs text-forge-orange">You have 3 minutes to edit this bid after submission.</p>
       </div>
     </div>
   );
