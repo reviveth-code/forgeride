@@ -1,11 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { X, User, Package, Loader2, Users, LocateFixed } from 'lucide-react';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { X, User, Package, Loader2, Users, LocateFixed, Pencil } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import '@/utils/leaflet';
 import LocationSearchInput from '@/components/LocationSearchInput';
 import MapViewUpdater from '@/components/MapViewUpdater';
+
+// Allows tapping the map to set a location
+function MapClickHandler({ onPickup, onDropoff, activePin }) {
+  useMapEvents({
+    click: async (e) => {
+      const { lat, lng } = e.latlng;
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+        const data = await res.json();
+        const loc = { address: data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`, lat, lng };
+        if (activePin === 'pickup') onPickup(loc);
+        else onDropoff(loc);
+      } catch {
+        const loc = { address: `${lat.toFixed(5)}, ${lng.toFixed(5)}`, lat, lng };
+        if (activePin === 'pickup') onPickup(loc);
+        else onDropoff(loc);
+      }
+    }
+  });
+  return null;
+}
 
 function haversine(lat1, lng1, lat2, lng2) {
   const R = 6371;
@@ -23,6 +44,8 @@ export default function NewRequest() {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [editingPickup, setEditingPickup] = useState(false);
+  const [activePin, setActivePin] = useState('dropoff'); // which pin map taps set: 'pickup' | 'dropoff'
   const [user, setUser] = useState(null);
   const [forSomeoneElse, setForSomeoneElse] = useState(false);
   const [recipientName, setRecipientName] = useState('');
@@ -98,31 +121,60 @@ export default function NewRequest() {
         <div className="w-6" />
       </div>
 
-      <div className="h-52">
+      <div className="h-52 relative">
         <MapContainer center={[6.5244, 3.3792]} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false} attributionControl={false}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {pickupLoc && <Marker position={[pickupLoc.lat, pickupLoc.lng]} />}
           {dropoffLoc && <Marker position={[dropoffLoc.lat, dropoffLoc.lng]} />}
           {mapCenter && <MapViewUpdater center={mapCenter} zoom={dropoffLoc ? 12 : 14} />}
+          <MapClickHandler onPickup={setPickupLoc} onDropoff={setDropoffLoc} activePin={activePin} />
         </MapContainer>
+        {/* Map pin mode toggle */}
+        <div className="absolute bottom-2 right-2 z-[1000] flex gap-1.5">
+          <button type="button" onClick={() => setActivePin('pickup')}
+            className={`text-xs font-bold px-3 py-1.5 rounded-full shadow transition-colors ${activePin === 'pickup' ? 'bg-forge-orange text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
+            📍 Pickup
+          </button>
+          <button type="button" onClick={() => setActivePin('dropoff')}
+            className={`text-xs font-bold px-3 py-1.5 rounded-full shadow transition-colors ${activePin === 'dropoff' ? 'bg-forge-orange text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
+            🏁 Dropoff
+          </button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4 flex-1 overflow-auto pb-8">
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Route Details</p>
 
-        <div className="relative">
-          <LocationSearchInput
-            placeholder={locating ? 'Detecting your location…' : 'Pickup location'}
-            value={pickupLoc}
-            onChange={setPickupLoc}
-            dotColor="bg-forge-orange"
-          />
-          {locating && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-forge-orange font-semibold pointer-events-none">
-              <Loader2 className="w-4 h-4 animate-spin" />
+        {/* Pickup — locked by default, editable on tap */}
+        {!editingPickup ? (
+          <button type="button" onClick={() => setEditingPickup(true)}
+            className="w-full flex items-center gap-3 px-4 py-4 border border-border bg-card rounded-2xl text-left">
+            <div className="w-3 h-3 rounded-full bg-forge-orange flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              {locating ? (
+                <span className="text-sm text-forge-orange font-semibold flex items-center gap-1">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Detecting your location…
+                </span>
+              ) : pickupLoc ? (
+                <span className="text-sm text-foreground font-medium truncate block">{pickupLoc.address}</span>
+              ) : (
+                <span className="text-sm text-gray-400">Pickup location</span>
+              )}
             </div>
-          )}
-        </div>
+            <Pencil className="w-4 h-4 text-forge-orange flex-shrink-0" />
+          </button>
+        ) : (
+          <div>
+            <LocationSearchInput
+              placeholder="Search pickup location"
+              value={pickupLoc}
+              onChange={(loc) => { setPickupLoc(loc); setEditingPickup(false); }}
+              dotColor="bg-forge-orange"
+            />
+            <button type="button" onClick={() => setEditingPickup(false)}
+              className="text-xs text-gray-400 mt-1 ml-1 underline">Cancel</button>
+          </div>
+        )}
 
         <LocationSearchInput
           placeholder="Where are you going?"
