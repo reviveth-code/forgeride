@@ -92,7 +92,7 @@ export default function NewRequest() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background max-w-md mx-auto">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-card">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-card" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
         <button onClick={() => navigate(-1)}><X className="w-6 h-6 text-foreground" /></button>
         <h1 className="text-lg font-bold text-foreground">New Request</h1>
         <div className="w-6" />

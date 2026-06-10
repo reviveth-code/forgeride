@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { CheckCircle, Clock } from 'lucide-react';
+import PullToRefresh from '@/components/PullToRefresh';
 
 export default function DriverHistory() {
   const [trips, setTrips] = useState([]);
-  const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    base44.auth.me().then(u => {
-      setUser(u);
-      base44.entities.Trip.filter({ driver_id: u.email }, '-created_date', 30).then(setTrips);
-    });
-  }, []);
+  const load = async () => {
+    const u = await base44.auth.me();
+    const data = await base44.entities.Trip.filter({ driver_id: u.email }, '-created_date', 30);
+    setTrips(data);
+  };
+
+  useEffect(() => { load(); }, []);
 
   const totalEarnings = trips.filter(t => t.status === 'completed').reduce((sum, t) => sum + (t.agreed_price || 0), 0);
   const completedTrips = trips.filter(t => t.status === 'completed').length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <PullToRefresh onRefresh={load}>
       <div className="bg-card px-5 pt-8 pb-5 border-b border-border">
         <h1 className="text-2xl font-extrabold text-foreground mb-4">Trip History</h1>
         <div className="grid grid-cols-2 gap-3">
@@ -66,6 +67,6 @@ export default function DriverHistory() {
           ))
         )}
       </div>
-    </div>
+    </PullToRefresh>
   );
 }

@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Briefcase, Clock, User } from 'lucide-react';
 
 const tabs = [
@@ -10,6 +10,16 @@ const tabs = [
 
 export default function DriverLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleTabPress = (path) => {
+    if (location.pathname === path) {
+      navigate(path, { replace: true });
+    } else {
+      navigate(path);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background max-w-md mx-auto relative">
       <div className="flex-1 overflow-auto pb-20">
@@ -23,14 +33,14 @@ export default function DriverLayout() {
           {tabs.map(({ path, icon: Icon, label }) => {
             const active = location.pathname === path || (path !== '/driver' && location.pathname.startsWith(path));
             return (
-              <Link
+              <button
                 key={path}
-                to={path}
+                onClick={() => handleTabPress(path)}
                 className={`flex flex-col items-center gap-1 px-4 py-2 transition-colors ${active ? 'text-forge-orange' : 'text-gray-400'}`}
               >
                 <Icon className="w-5 h-5" />
                 <span className="text-xs font-medium">{label}</span>
-              </Link>
+              </button>
             );
           })}
         </div>

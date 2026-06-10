@@ -88,7 +88,7 @@ export default function PassengerProfile() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-forge-navy pt-12 pb-6 px-5 text-center">
+      <div className="bg-forge-navy pb-6 px-5 text-center" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 2rem)' }}>
         <div className="w-20 h-20 bg-forge-orange rounded-full flex items-center justify-center text-white font-extrabold text-3xl mx-auto mb-3">
           {user?.full_name?.[0]?.toUpperCase() || 'U'}
         </div>
@@ -136,17 +136,21 @@ export default function PassengerProfile() {
           </button>
         ))}
 
-        {/* Phone Number (Coming Soon) */}
-        <div className="w-full bg-card rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm opacity-60">
+        {/* Phone Number */}
+        <button onClick={() => setShowPhoneVerify(true)}
+          className="w-full bg-card rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
           <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
             <Phone className="w-5 h-5 text-forge-orange" />
           </div>
           <div className="flex-1 text-left">
             <p className="font-semibold text-foreground text-sm">Phone Number</p>
-            <p className="text-xs text-gray-400 mt-0.5">{user?.phone || 'Verification coming soon'}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{user?.phone || 'Tap to verify your phone'}</p>
           </div>
-          <span className="text-xs font-bold text-forge-orange bg-forge-orange/10 px-2 py-1 rounded-full">Soon</span>
-        </div>
+          {user?.phone_verified
+            ? <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">Verified</span>
+            : <ChevronRight className="w-4 h-4 text-gray-300" />
+          }
+        </button>
 
         {/* Trip History */}
         <button onClick={() => navigate('/passenger/trip-history')}

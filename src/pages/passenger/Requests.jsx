@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ChevronRight, Plus } from 'lucide-react';
+import PullToRefresh from '@/components/PullToRefresh';
 
 const STATUS_STYLES = {
   open: 'bg-green-100 text-green-700',
@@ -15,16 +16,18 @@ export default function PassengerRequests() {
   const [requests, setRequests] = useState([]);
   const [filter, setFilter] = useState('all');
 
-  useEffect(() => {
-    base44.auth.me().then(u => {
-      base44.entities.RideRequest.filter({ created_by: u.email }, '-created_date', 30).then(setRequests);
-    });
-  }, []);
+  const load = async () => {
+    const u = await base44.auth.me();
+    const data = await base44.entities.RideRequest.filter({ created_by: u.email }, '-created_date', 30);
+    setRequests(data);
+  };
+
+  useEffect(() => { load(); }, []);
 
   const filtered = requests.filter(r => filter === 'all' || r.status === filter);
 
   return (
-    <div className="min-h-screen bg-background">
+    <PullToRefresh onRefresh={load}>
       <div className="bg-card px-5 pt-8 pb-5 border-b border-border">
         <h1 className="text-2xl font-extrabold text-foreground mb-4">My Requests</h1>
         <div className="flex gap-2 overflow-x-auto pb-1">
@@ -77,6 +80,6 @@ export default function PassengerRequests() {
           ))
         )}
       </div>
-    </div>
+    </PullToRefresh>
   );
 }

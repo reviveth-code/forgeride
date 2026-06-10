@@ -106,7 +106,7 @@ export default function PlaceBid() {
 
   return (
     <div className="min-h-screen bg-gray-50 max-w-md mx-auto">
-      <div className="flex items-center gap-4 px-5 py-4 bg-white border-b border-gray-100">
+      <div className="flex items-center gap-4 px-5 py-4 bg-white border-b border-gray-100" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
         <button onClick={() => navigate(-1)}><ArrowLeft className="w-6 h-6 text-gray-700" /></button>
         <h1 className="text-lg font-bold text-gray-900">Place Your Bid</h1>
       </div>

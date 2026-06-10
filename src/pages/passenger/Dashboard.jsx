@@ -5,6 +5,7 @@ import { Bell, MapPin, User, Package, ChevronRight, Plus, Info } from 'lucide-re
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import DriversNearbyCard from '@/components/passenger/DriversNearbyCard';
 import useCurrentLocation from '@/hooks/useCurrentLocation';
+import PullToRefresh from '@/components/PullToRefresh';
 
 const STATUS_STYLES = {
   open: 'bg-green-100 text-green-700',
@@ -39,6 +40,12 @@ export default function PassengerDashboard() {
       .then(all => setRequests(all.filter(r => ['open', 'matched', 'active'].includes(r.status))));
   };
 
+  const handleRefresh = async () => {
+    const u = await base44.auth.me();
+    setUser(u);
+    loadRequests(u?.email);
+  };
+
   const greeting = () => {
     const h = new Date().getHours();
     if (h < 12) return 'Good Morning';
@@ -47,7 +54,7 @@ export default function PassengerDashboard() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <PullToRefresh onRefresh={handleRefresh} className="bg-gray-50">
       {/* Header */}
       <div className="bg-white px-5 pt-8 pb-5">
         <div className="flex items-center justify-between mb-5">
@@ -73,7 +80,6 @@ export default function PassengerDashboard() {
                       <p className="text-xs text-gray-400 mt-0.5">Post a ride or delivery request to get started.</p>
                     </div>
                   </div>
-
                 </div>
               </DialogContent>
             </Dialog>
@@ -88,7 +94,6 @@ export default function PassengerDashboard() {
             {locationLoading ? 'Getting location…' : (currentAddress || 'Location unavailable')}
           </span>
         </div>
-
       </div>
 
       <div className="px-5 py-5 space-y-5">
@@ -147,6 +152,6 @@ export default function PassengerDashboard() {
           )}
         </div>
       </div>
-    </div>
+    </PullToRefresh>
   );
 }

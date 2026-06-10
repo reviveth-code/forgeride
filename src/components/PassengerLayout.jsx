@@ -1,5 +1,4 @@
-import { useRef, useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Clock, MapPin, User } from 'lucide-react';
 
 const tabs = [
@@ -9,41 +8,22 @@ const tabs = [
   { path: '/passenger/profile', icon: User, label: 'Profile' },
 ];
 
-// Preserves scroll position per tab by keeping rendered tabs in the DOM (display:none when inactive)
-function ScrollPreservingOutlet({ activePath }) {
-  const scrollRefs = useRef({});
-
-  useEffect(() => {
-    // Save scroll when leaving, restore when arriving
-    const container = scrollRefs.current[activePath];
-    if (container) container.scrollTop = container._savedScroll || 0;
-    return () => {
-      const c = scrollRefs.current[activePath];
-      if (c) c._savedScroll = c.scrollTop;
-    };
-  }, [activePath]);
-
-  return (
-    <div className="flex-1 relative">
-      {tabs.map(({ path }) => (
-        <div
-          key={path}
-          ref={el => { scrollRefs.current[path] = el; }}
-          className="absolute inset-0 overflow-auto pb-20"
-          style={{ display: activePath === path ? 'block' : 'none' }}
-        >
-          {activePath === path && <Outlet />}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function PassengerLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleTabPress = (path) => {
+    if (location.pathname === path) {
+      // Already on this tab root — navigate to force a re-mount / scroll to top
+      navigate(path, { replace: true });
+    } else {
+      navigate(path);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background max-w-md mx-auto relative">
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 overflow-auto pb-20">
         <Outlet />
       </div>
       <nav
@@ -54,14 +34,14 @@ export default function PassengerLayout() {
           {tabs.map(({ path, icon: Icon, label }) => {
             const active = location.pathname === path;
             return (
-              <Link
+              <button
                 key={path}
-                to={path}
+                onClick={() => handleTabPress(path)}
                 className={`flex flex-col items-center gap-1 px-4 py-2 transition-colors ${active ? 'text-forge-orange' : 'text-gray-400'}`}
               >
                 <Icon className="w-5 h-5" />
                 <span className="text-xs font-medium">{label}</span>
-              </Link>
+              </button>
             );
           })}
         </div>
