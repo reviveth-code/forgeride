@@ -123,19 +123,30 @@ export default function DriverDashboard() {
         </div>
 
         {/* Nearby Requests */}
-        <div>
-          <div className="flex justify-between items-center mb-3">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Nearby Requests</p>
-            <span className="text-forge-orange text-sm font-bold">{requests.length} available</span>
+        <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
+          {/* Header with count */}
+          <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <p className="font-bold text-foreground">Nearby Requests</p>
+              {requests.length > 0 && (
+                <span className="bg-forge-orange text-white text-xs font-extrabold px-2.5 py-1 rounded-full min-w-[28px] text-center">
+                  {requests.length}
+                </span>
+              )}
+            </div>
+            <Link to="/driver/requests" className="text-forge-orange text-sm font-bold flex items-center gap-1">
+              See All →
+            </Link>
           </div>
+
           {requests.length === 0 ? (
-            <div className="bg-card rounded-2xl p-8 text-center text-muted-foreground text-sm shadow-sm">
+            <div className="px-5 py-8 text-center text-muted-foreground text-sm">
               No nearby requests right now.
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="divide-y divide-border">
               {requests.slice(0, 3).map(req => (
-                <div key={req.id} className="bg-card rounded-2xl p-4 shadow-sm border border-border">
+                <div key={req.id} className="px-5 py-4">
                   <div className="flex justify-between items-center mb-2">
                     <div className="flex items-center gap-2">
                       {req.request_type === 'person' ? <User className="w-4 h-4 text-forge-orange" /> : <Package className="w-4 h-4 text-forge-orange" />}
@@ -166,9 +177,13 @@ export default function DriverDashboard() {
               ))}
             </div>
           )}
-          <Link to="/driver/requests" className="block text-center text-forge-orange font-bold text-sm mt-4">
-            See All Requests →
-          </Link>
+
+          {requests.length > 3 && (
+            <Link to="/driver/requests"
+              className="flex items-center justify-center gap-2 py-4 border-t border-border text-forge-orange text-sm font-bold">
+              View {requests.length - 3} more request{requests.length - 3 !== 1 ? 's' : ''} →
+            </Link>
+          )}
         </div>
       </div>
     </div>
