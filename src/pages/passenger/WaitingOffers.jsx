@@ -50,23 +50,38 @@ export default function WaitingOffers() {
 
   useEffect(() => {
     let timer;
+    let hasExpired = false;
+
     base44.entities.RideRequest.get(requestId).then(req => {
       setRequest(req);
+
+      // If request is already in a terminal state, don't start the expiry timer
+      if (req.status !== 'open') return;
+
       const createdAt = new Date(req.created_date).getTime();
+
+      // Validate the timestamp — if it's invalid or in the future, don't start timer
+      if (isNaN(createdAt) || createdAt > Date.now()) return;
+
       const tick = () => {
-        const elapsed = Date.now() - createdAt;
-        // Guard against clock skew — only start counting after 2s elapsed
-        if (elapsed < 2000) return;
+        const now = Date.now();
+        const elapsed = now - createdAt;
         const remaining = Math.max(0, Math.floor((REQUEST_TTL_MS - elapsed) / 1000));
         setSecsLeft(remaining);
-        if (remaining === 0) {
+
+        if (remaining === 0 && !hasExpired) {
+          hasExpired = true;
           setExpired(true);
           base44.entities.RideRequest.update(requestId, { status: 'cancelled' });
+          clearInterval(timer);
         }
       };
+
+      // Run immediately then every second
       tick();
       timer = setInterval(tick, 1000);
     });
+
     loadBids();
     const unsub = base44.entities.Bid.subscribe(() => loadBids());
     base44.entities.Bid.filter({ status: 'pending' }).then(allBids => {
