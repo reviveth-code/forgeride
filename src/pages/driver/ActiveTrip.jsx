@@ -48,10 +48,20 @@ export default function ActiveTrip() {
 
   const confirmPickup = async () => {
     setLoading(true);
-    await base44.entities.Trip.update(tripId, { status: 'in_progress' });
-    setTrip(prev => ({ ...prev, status: 'in_progress' }));
+    await base44.entities.Trip.update(tripId, { status: 'awaiting_passenger_confirm' });
+    setTrip(prev => ({ ...prev, status: 'awaiting_passenger_confirm' }));
     setLoading(false);
   };
+
+  // Auto-sync trip status changes from passenger confirmation
+  useEffect(() => {
+    if (!tripId) return;
+    const unsub = base44.entities.Trip.subscribe((event) => {
+      if (event.id === tripId) setTrip(event.data);
+    });
+    const poll = setInterval(() => base44.entities.Trip.get(tripId).then(setTrip), 4000);
+    return () => { unsub(); clearInterval(poll); };
+  }, [tripId]);
 
   const endTrip = async () => {
     if (trip?.status !== 'in_progress') return;
@@ -133,18 +143,24 @@ export default function ActiveTrip() {
                 <p className="text-base font-bold text-forge-orange">₦{trip.agreed_price?.toLocaleString()}</p>
               </div>
             </div>
-            {trip?.status !== 'in_progress' ? (
+            {trip?.status === 'driver_arriving' && (
               <button onClick={confirmPickup} disabled={loading}
                 className="w-full bg-green-600 text-white font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm mb-3">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : '✅ Confirm Passenger Picked Up'}
               </button>
-            ) : null}
+            )}
+            {trip?.status === 'awaiting_passenger_confirm' && (
+              <div className="w-full bg-yellow-100 border border-yellow-300 text-yellow-800 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm mb-3">
+                <Loader2 className="w-4 h-4 animate-spin" /> Waiting for passenger to confirm...
+              </div>
+            )}
             <div className="flex gap-3">
               <button className="flex-1 border-2 border-red-400 text-red-400 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm">
                 <AlertTriangle className="w-4 h-4" /> SOS Emergency
               </button>
               <button onClick={endTrip} disabled={loading || trip?.status !== 'in_progress'}
-                className={`flex-1 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm ${trip?.status === 'in_progress' ? 'bg-forge-navy text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+                className={`flex-1 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm ${trip?.status === 'in_progress' ? 'bg-forge-navy text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+              >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Flag className="w-4 h-4" /> End Trip</>}
               </button>
             </div>

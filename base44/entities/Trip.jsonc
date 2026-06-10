@@ -43,6 +43,7 @@
       "type": "string",
       "enum": [
         "driver_arriving",
+        "awaiting_passenger_confirm",
         "in_progress",
         "completed",
         "cancelled"

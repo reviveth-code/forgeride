@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Phone, Star } from 'lucide-react';
+import { ArrowLeft, Phone, Star, Loader2 } from 'lucide-react';
 
 function haversine(lat1, lng1, lat2, lng2) {
   if (lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null;
@@ -96,7 +96,9 @@ export default function TripTracking() {
     <div className="min-h-screen flex flex-col max-w-md mx-auto">
       <div className="flex items-center justify-between px-5 py-4 bg-card border-b border-border z-10 relative">
         <button onClick={() => navigate('/passenger')}><ArrowLeft className="w-6 h-6 text-foreground" /></button>
-        <h1 className="text-lg font-bold text-foreground">Pick up in Progress</h1>
+        <h1 className="text-lg font-bold text-foreground">
+          {trip?.status === 'in_progress' ? 'Trip In Progress' : trip?.status === 'awaiting_passenger_confirm' ? 'Confirm Pickup' : 'Driver Arriving'}
+        </h1>
         {driverProfile?.phone ? (
           <a href={`tel:${driverProfile.phone}`} className="w-10 h-10 bg-forge-orange rounded-full flex items-center justify-center shadow">
             <Phone className="w-5 h-5 text-white" />
@@ -185,8 +187,26 @@ export default function TripTracking() {
                 <p className="text-xs text-gray-400 font-medium uppercase">Agreed Price</p>
               </div>
             </div>
-            <div className={`text-white text-center py-3 rounded-2xl font-bold text-sm ${trip.status === 'in_progress' ? 'bg-forge-navy' : 'bg-forge-orange'}`}>
-              ● {trip.status === 'in_progress' ? 'Trip In Progress' : 'Driver Arriving'}
+            {trip.status === 'awaiting_passenger_confirm' && (
+              <div className="mb-3">
+                <p className="text-sm font-bold text-center text-gray-700 mb-2">Driver says they've arrived — are you in the vehicle?</p>
+                <button
+                  onClick={async () => {
+                    await base44.entities.Trip.update(tripId, { status: 'in_progress' });
+                    setTrip(prev => ({ ...prev, status: 'in_progress' }));
+                  }}
+                  className="w-full bg-green-600 text-white font-bold py-3.5 rounded-2xl text-sm"
+                >
+                  ✅ Yes, I'm in the vehicle — Start Trip
+                </button>
+              </div>
+            )}
+            <div className={`text-white text-center py-3 rounded-2xl font-bold text-sm ${
+              trip.status === 'in_progress' ? 'bg-forge-navy' :
+              trip.status === 'awaiting_passenger_confirm' ? 'bg-yellow-500' :
+              'bg-forge-orange'
+            }`}>
+              ● {trip.status === 'in_progress' ? 'Trip In Progress' : trip.status === 'awaiting_passenger_confirm' ? 'Waiting for Your Confirmation' : 'Driver Arriving'}
             </div>
           </>
         ) : (
