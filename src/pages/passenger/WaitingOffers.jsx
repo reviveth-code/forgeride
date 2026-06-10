@@ -3,6 +3,43 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, X, Clock } from 'lucide-react';
 
+const BID_TTL_MS = 3 * 60 * 1000;
+
+function useBidCountdown(createdDate) {
+  const [secsLeft, setSecsLeft] = useState(180);
+  useEffect(() => {
+    const tick = () => {
+      const ds = typeof createdDate === 'string' && !createdDate.endsWith('Z') ? createdDate + 'Z' : createdDate;
+      setSecsLeft(Math.max(0, Math.floor((BID_TTL_MS - (Date.now() - new Date(ds).getTime())) / 1000)));
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [createdDate]);
+  return secsLeft;
+}
+
+function BidRow({ bid }) {
+  const secsLeft = useBidCountdown(bid.created_date);
+  const mm = String(Math.floor(secsLeft / 60)).padStart(2, '0');
+  const ss = String(secsLeft % 60).padStart(2, '0');
+  const urgent = secsLeft < 30;
+  const expired = secsLeft === 0;
+  return (
+    <div className={`bg-card rounded-2xl p-4 flex justify-between items-center border border-border ${expired ? 'opacity-50' : ''}`}>
+      <div>
+        <p className="font-bold text-foreground text-sm">{bid.driver_name}</p>
+        <p className="text-forge-orange font-extrabold text-lg">₦{bid.price?.toLocaleString()}</p>
+        <div className={`flex items-center gap-1 mt-1 text-xs font-bold ${expired ? 'text-red-400' : urgent ? 'text-red-500' : 'text-gray-400'}`}>
+          <Clock className="w-3 h-3" />
+          {expired ? 'Expired' : `${mm}:${ss}`}
+        </div>
+      </div>
+      <span className="text-xs text-gray-400">~{bid.eta_min || 4} min away</span>
+    </div>
+  );
+}
+
 const playChime = () => {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -39,7 +76,6 @@ export default function WaitingOffers() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [expired, setExpired] = useState(false);
-  const [secsLeft, setSecsLeft] = useState(180); // start at full 3 min to avoid flash
 
   const prevBidCountRef = useRef(0);
 
@@ -73,7 +109,6 @@ export default function WaitingOffers() {
         const now = Date.now();
         const elapsed = Math.max(0, now - createdAt);
         const remaining = Math.max(0, Math.floor((REQUEST_TTL_MS - elapsed) / 1000));
-        setSecsLeft(remaining);
         if (remaining === 0 && !hasExpired) {
           hasExpired = true;
           setExpired(true);
@@ -120,9 +155,7 @@ export default function WaitingOffers() {
     );
   }
 
-  const mm = secsLeft != null ? String(Math.floor(secsLeft / 60)).padStart(2, '0') : '--';
-  const ss = secsLeft != null ? String(secsLeft % 60).padStart(2, '0') : '--';
-  const urgent = secsLeft != null && secsLeft < 30;
+
 
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto">
@@ -143,10 +176,7 @@ export default function WaitingOffers() {
           {nearbyDrivers !== null && (
             <p className="text-green-600 text-sm font-semibold">● {nearbyDrivers} driver{nearbyDrivers !== 1 ? 's' : ''} active nearby</p>
           )}
-          <div className={`mt-2 flex items-center gap-1.5 text-sm font-bold ${urgent ? 'text-red-500' : 'text-gray-500'}`}>
-            <Clock className="w-4 h-4" />
-            <span>Expires in {mm}:{ss}</span>
-          </div>
+
         </div>
 
         {/* Request summary */}
@@ -188,13 +218,7 @@ export default function WaitingOffers() {
           ) : (
             <div className="space-y-2">
               {bids.map(bid => (
-                <div key={bid.id} className="bg-card rounded-2xl p-4 flex justify-between items-center border border-border">
-                  <div>
-                    <p className="font-bold text-foreground text-sm">{bid.driver_name}</p>
-                    <p className="text-forge-orange font-extrabold text-lg">₦{bid.price?.toLocaleString()}</p>
-                  </div>
-                  <span className="text-xs text-gray-400">~{bid.eta_min || 4} min away</span>
-                </div>
+                <BidRow key={bid.id} bid={bid} />
               ))}
             </div>
           )}

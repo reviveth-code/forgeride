@@ -1,7 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Star, Loader2, Car } from 'lucide-react';
+import { ArrowLeft, Star, Loader2, Car, Clock } from 'lucide-react';
+
+const BID_TTL_MS = 3 * 60 * 1000;
+
+function useBidCountdown(createdDate) {
+  const [secsLeft, setSecsLeft] = useState(180);
+  useEffect(() => {
+    const tick = () => {
+      const raw = createdDate;
+      const ds = typeof raw === 'string' && !raw.endsWith('Z') ? raw + 'Z' : raw;
+      setSecsLeft(Math.max(0, Math.floor((BID_TTL_MS - (Date.now() - new Date(ds).getTime())) / 1000)));
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [createdDate]);
+  return secsLeft;
+}
 
 export default function DriverOffers() {
   const { requestId } = useParams();
@@ -64,6 +81,65 @@ export default function DriverOffers() {
 
   const initials = (name) => name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'DR';
 
+  const BidCard = ({ bid, index }) => {
+    const secsLeft = useBidCountdown(bid.created_date);
+    const mm = String(Math.floor(secsLeft / 60)).padStart(2, '0');
+    const ss = String(secsLeft % 60).padStart(2, '0');
+    const urgent = secsLeft < 30;
+    const expired = secsLeft === 0;
+    const dp = driverProfiles[bid.driver_id];
+    const parts = [bid.vehicle_type || dp?.vehicle_type, dp?.vehicle_color, dp?.vehicle_model, dp?.vehicle_plate].filter(Boolean);
+
+    return (
+      <div key={bid.id} className={`bg-card rounded-2xl p-4 shadow-sm border ${expired ? 'border-red-200 opacity-60' : 'border-border'}`}>
+        {index === 0 && !expired && (
+          <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">BEST PRICE</span>
+        )}
+        {expired && (
+          <span className="bg-red-100 text-red-500 text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">EXPIRED</span>
+        )}
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-11 h-11 bg-forge-orange rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+            {initials(bid.driver_name)}
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-foreground text-sm">{bid.driver_name}</p>
+            <div className="flex items-center gap-1 mt-0.5">
+              <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+              <span className="text-xs text-gray-500">{bid.driver_rating ?? 0}</span>
+              <span className="text-xs text-green-500 ml-2">●Online now</span>
+            </div>
+            {parts.length > 0 && (
+              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <Car className="w-3 h-3 flex-shrink-0" />
+                {parts.join(' · ')}
+              </p>
+            )}
+            {dp?.phone && <p className="text-xs text-gray-400 mt-0.5">📞 {dp.phone}</p>}
+            {bid.message && <p className="text-xs text-gray-400 italic mt-1">"{bid.message}"</p>}
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-forge-orange font-extrabold text-2xl">₦{bid.price?.toLocaleString()}</p>
+            <div className="flex gap-3 text-xs text-gray-400 mt-0.5">
+              <span>~{bid.eta_min || 4} min</span>
+              <span>~{bid.distance_from_pickup_km || 1} km away</span>
+            </div>
+          </div>
+          <button onClick={() => !expired && selectDriver(bid)} disabled={!!selecting || expired}
+            className="bg-forge-orange text-white text-sm font-bold px-5 py-3 rounded-2xl flex items-center gap-2 disabled:opacity-60">
+            {selecting === bid.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Select Driver'}
+          </button>
+        </div>
+        <div className={`flex items-center gap-1.5 mt-2 text-xs font-bold ${expired ? 'text-red-400' : urgent ? 'text-red-500' : 'text-gray-400'}`}>
+          <Clock className="w-3.5 h-3.5" />
+          {expired ? 'Offer expired' : `Offer expires in ${mm}:${ss}`}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto">
       <div className="flex items-center gap-4 px-5 py-4 bg-card border-b border-border">
@@ -102,58 +178,7 @@ export default function DriverOffers() {
         ) : (
           <div className="space-y-3">
             {bids.map((bid, i) => (
-              <div key={bid.id} className="bg-card rounded-2xl p-4 shadow-sm border border-border">
-                {i === 0 && (
-                  <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">BEST PRICE</span>
-                )}
-                <div className="flex items-start gap-3 mb-3">
-                  <div className="w-11 h-11 bg-forge-orange rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                    {initials(bid.driver_name)}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-foreground text-sm">{bid.driver_name}</p>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                      <span className="text-xs text-gray-500">{bid.driver_rating ?? 0}</span>
-                      <span className="text-xs text-green-500 ml-2">●Online now</span>
-                    </div>
-                    {(() => {
-                      const dp = driverProfiles[bid.driver_id];
-                      if (!dp) return null;
-                      const parts = [
-                        bid.vehicle_type || dp.vehicle_type,
-                        dp.vehicle_color,
-                        dp.vehicle_model,
-                        dp.vehicle_plate,
-                      ].filter(Boolean);
-                      return parts.length > 0 ? (
-                        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                          <Car className="w-3 h-3 flex-shrink-0" />
-                          {parts.join(' · ')}
-                        </p>
-                      ) : null;
-                    })()}
-                    {driverProfiles[bid.driver_id]?.phone && (
-                      <p className="text-xs text-gray-400 mt-0.5">📞 {driverProfiles[bid.driver_id].phone}</p>
-                    )}
-                    {bid.message && <p className="text-xs text-gray-400 italic mt-1">"{bid.message}"</p>}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-forge-orange font-extrabold text-2xl">₦{bid.price?.toLocaleString()}</p>
-                    <div className="flex gap-3 text-xs text-gray-400 mt-0.5">
-                      <span>~{bid.eta_min || 4} min</span>
-                      <span>~{bid.distance_from_pickup_km || 1} km away</span>
-                    </div>
-                  </div>
-                  <button onClick={() => selectDriver(bid)} disabled={!!selecting}
-                    className="bg-forge-orange text-white text-sm font-bold px-5 py-3 rounded-2xl flex items-center gap-2 disabled:opacity-60">
-                    {selecting === bid.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Select Driver'}
-                  </button>
-                </div>
-                <p className="text-xs text-gray-300 mt-2">Offer expires in 03:00</p>
-              </div>
+              <BidCard key={bid.id} bid={bid} index={i} />
             ))}
           </div>
         )}
