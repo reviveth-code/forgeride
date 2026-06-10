@@ -107,9 +107,16 @@ export default function NearbyRequests() {
     return () => { unsub(); clearInterval(poll); navigator.geolocation?.clearWatch(watchId); };
   }, []);
 
+  const RADIUS_KM = 10;
+
   const filtered = requests
     .filter(r => filter === 'all' || r.request_type === filter)
-    .filter(r => (Date.now() - new Date(r.created_date).getTime()) < REQUEST_TTL_MS);
+    .filter(r => (Date.now() - new Date(r.created_date).getTime()) < REQUEST_TTL_MS)
+    .filter(r => {
+      if (!driverPos) return true; // show all while location is loading
+      const dist = haversine(driverPos.lat, driverPos.lng, r.pickup_lat, r.pickup_lng);
+      return dist == null || dist <= RADIUS_KM;
+    });
 
 
 
@@ -119,7 +126,7 @@ export default function NearbyRequests() {
         <h1 className="text-2xl font-extrabold text-foreground mb-3">Nearby Requests</h1>
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <MapPin className="w-4 h-4 text-forge-orange" />
-          <span>Showing requests within 5km of your location</span>
+          <span>Showing requests within 10km of your location</span>
         </div>
       </div>
 
