@@ -40,7 +40,7 @@ export default function WaitingOffers() {
   const [cancelReason, setCancelReason] = useState('');
   const [expired, setExpired] = useState(false);
   const [secsLeft, setSecsLeft] = useState(180); // start at full 3 min to avoid flash
-  const [debugInfo, setDebugInfo] = useState(null);
+
   const prevBidCountRef = useRef(0);
 
   const loadBids = () => base44.entities.Bid.filter({ request_id: requestId, status: 'pending' }).then(newBids => {
@@ -74,15 +74,6 @@ export default function WaitingOffers() {
         const elapsed = Math.max(0, now - createdAt);
         const remaining = Math.max(0, Math.floor((REQUEST_TTL_MS - elapsed) / 1000));
         setSecsLeft(remaining);
-        setDebugInfo({
-          createdDateRaw: req.created_date,
-          createdAtMs: createdAt,
-          nowMs: now,
-          elapsedMs: now - createdAt,
-          elapsedSec: Math.floor((now - createdAt) / 1000),
-          remainingSec: remaining,
-        });
-
         if (remaining === 0 && !hasExpired) {
           hasExpired = true;
           setExpired(true);
@@ -140,23 +131,6 @@ export default function WaitingOffers() {
         <h1 className="text-lg font-bold text-foreground">Waiting for Offers</h1>
         <button onClick={() => setShowCancelModal(true)}><X className="w-5 h-5 text-gray-400" /></button>
       </div>
-
-      {/* ── DEBUG PANEL — remove after fix ── */}
-      {debugInfo && (
-        <div className="mx-5 mt-3 bg-black text-green-400 font-mono text-xs rounded-xl p-3 space-y-0.5 overflow-x-auto">
-          <p>📅 created_date (raw): <span className="text-white">{debugInfo.createdDateRaw}</span></p>
-          <p>🕐 createdAt (ms):     <span className="text-white">{debugInfo.createdAtMs}</span></p>
-          <p>🕐 now (ms):           <span className="text-white">{debugInfo.nowMs}</span></p>
-          <p>⏱ elapsed:            <span className={debugInfo.elapsedMs < 0 ? 'text-red-400' : 'text-yellow-300'}>{debugInfo.elapsedMs} ms ({debugInfo.elapsedSec}s)</span></p>
-          <p>⏳ remaining:          <span className={debugInfo.remainingSec === 0 ? 'text-red-400 font-bold' : 'text-green-300'}>{debugInfo.remainingSec}s</span></p>
-        </div>
-      )}
-      {!debugInfo && request && (
-        <div className="mx-5 mt-3 bg-black text-yellow-400 font-mono text-xs rounded-xl p-3">
-          ⏳ Waiting for tick… status={request?.status} | created={request?.created_date}
-        </div>
-      )}
-      {/* ── END DEBUG ── */}
 
       <div className="px-5 py-6 space-y-4">
         {/* Pulsing indicator */}
