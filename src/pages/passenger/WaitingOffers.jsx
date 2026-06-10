@@ -39,7 +39,7 @@ export default function WaitingOffers() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [expired, setExpired] = useState(false);
-  const [secsLeft, setSecsLeft] = useState(null);
+  const [secsLeft, setSecsLeft] = useState(180); // start at full 3 min to avoid flash
   const prevBidCountRef = useRef(0);
 
   const loadBids = () => base44.entities.Bid.filter({ request_id: requestId, status: 'pending' }).then(newBids => {
@@ -55,17 +55,24 @@ export default function WaitingOffers() {
     base44.entities.RideRequest.get(requestId).then(req => {
       setRequest(req);
 
-      // If request is already in a terminal state, don't start the expiry timer
-      if (req.status !== 'open') return;
+      // If already matched/active, redirect to appropriate screen
+      if (req.status === 'matched' || req.status === 'active') {
+        navigate(`/passenger/offers/${requestId}`);
+        return;
+      }
 
+      // If already cancelled/completed by something else, just go home
+      if (req.status === 'cancelled' || req.status === 'completed') {
+        navigate('/passenger');
+        return;
+      }
+
+      // req.status === 'open' — start countdown
       const createdAt = new Date(req.created_date).getTime();
-
-      // Guard against unparseable dates only
       if (isNaN(createdAt)) return;
 
       const tick = () => {
         const now = Date.now();
-        // Use createdAt as the anchor; clamp so a future server timestamp doesn't go negative
         const elapsed = Math.max(0, now - createdAt);
         const remaining = Math.max(0, Math.floor((REQUEST_TTL_MS - elapsed) / 1000));
         setSecsLeft(remaining);
@@ -78,7 +85,6 @@ export default function WaitingOffers() {
         }
       };
 
-      // Run immediately then every second
       tick();
       timer = setInterval(tick, 1000);
     });
