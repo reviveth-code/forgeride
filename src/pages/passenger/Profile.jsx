@@ -65,7 +65,7 @@ export default function PassengerProfile() {
 
   const openModal = (key) => {
     // Reset form to current user values when opening
-    setEditForm({ full_name: user?.full_name || '', phone: user?.phone || '' });
+    setEditForm({ display_name: user?.display_name || user?.full_name || '', phone: user?.phone || '' });
     setActiveModal(key);
   };
 
@@ -74,7 +74,8 @@ export default function PassengerProfile() {
   const handleSave = async () => {
     setSaving(true);
     await base44.auth.updateMe(editForm);
-    setUser(u => ({ ...u, ...editForm }));
+    const fresh = await base44.auth.me();
+    setUser(fresh);
     setSaving(false);
     setActiveModal(null);
   };
@@ -82,7 +83,7 @@ export default function PassengerProfile() {
   const handleLogout = () => base44.auth.logout('/');
 
   const menuItems = [
-    { key: 'personal', icon: User, label: 'Personal Information', sub: user?.full_name || 'Edit your name' },
+    { key: 'personal', icon: User, label: 'Personal Information', sub: user?.display_name || user?.full_name || 'Edit your name' },
   ];
 
   return (
@@ -92,7 +93,7 @@ export default function PassengerProfile() {
         <div className="w-20 h-20 bg-forge-orange rounded-full flex items-center justify-center text-white font-extrabold text-3xl mx-auto mb-3">
           {user?.full_name?.[0]?.toUpperCase() || 'U'}
         </div>
-        <h1 className="text-xl font-bold text-white">{user?.full_name || 'User'}</h1>
+        <h1 className="text-xl font-bold text-white">{user?.display_name || user?.full_name || 'User'}</h1>
         <p className="text-white/50 text-sm mt-1">{user?.email}</p>
         {user?.phone && <p className="text-white/40 text-xs mt-0.5">{user.phone}</p>}
       </div>
@@ -216,11 +217,11 @@ export default function PassengerProfile() {
         <CategoryModal title="Personal Information" onClose={closeModal} onSave={handleSave} saving={saving}>
           <div className="space-y-4">
             <div>
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Full Name</label>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Display Name</label>
               <input
-                value={editForm.full_name || ''}
-                onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
-                placeholder="Your full name"
+                value={editForm.display_name || ''}
+                onChange={e => setEditForm(f => ({ ...f, display_name: e.target.value }))}
+                placeholder="Your name"
                 className="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-forge-orange"
               />
             </div>

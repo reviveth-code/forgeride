@@ -60,7 +60,7 @@ export default function PassengerDashboard() {
         <div className="flex items-center justify-between mb-5">
           <div>
             <p className="text-sm text-gray-400">{greeting()}</p>
-            <h1 className="text-2xl font-extrabold text-gray-900">{(user?.display_name || user?.full_name)?.split(' ')[0] || 'User'}</h1>
+            <h1 className="text-2xl font-extrabold text-gray-900">{(user?.display_name || user?.full_name || 'User').split(' ')[0]}</h1>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={() => setNotifOpen(true)} className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
