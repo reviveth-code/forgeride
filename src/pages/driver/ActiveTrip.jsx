@@ -54,6 +54,7 @@ export default function ActiveTrip() {
   const [loading, setLoading] = useState(false);
   const [driverPos, setDriverPos] = useState(null);
   const [showEndWarning, setShowEndWarning] = useState(false);
+  const [smoothDistKm, setSmoothDistKm] = useState(null);
   const wakeLockRef = useRef(null);
   const tripRef = useRef(null);
 
@@ -78,29 +79,37 @@ export default function ActiveTrip() {
     };
   }, []);
 
-  // Auto-end trip when screen goes off (page hidden) while in_progress
+  // Auto-end trip ONLY when app/browser is fully closed (not just screen dim or app switch)
   useEffect(() => {
-    const onVisibility = async () => {
-      if (document.visibilityState === 'hidden' && tripRef.current?.status === 'in_progress') {
+    const onPageHide = async () => {
+      if (tripRef.current?.status === 'in_progress') {
+        // Use sendBeacon so the request fires even as the page is unloading
+        navigator.sendBeacon && navigator.sendBeacon('/api/noop'); // keep-alive trick
         await base44.entities.Trip.update(tripId, { status: 'completed' });
       }
     };
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', onPageHide);
+    return () => window.removeEventListener('pagehide', onPageHide);
   }, [tripId]);
 
-  // Live distance from driver to target
-  const liveDistKm = useMemo(() => {
-    if (!driverPos) return null;
-    if (trip?.status === 'in_progress' && trip?.dropoff_lat) {
-      return haversine(driverPos[0], driverPos[1], trip.dropoff_lat, trip.dropoff_lng);
-    }
-    if (trip?.pickup_lat) {
-      return haversine(driverPos[0], driverPos[1], trip.pickup_lat, trip.pickup_lng);
-    }
-    return null;
+  // Smooth distance with exponential moving average
+  useEffect(() => {
+    const raw = (() => {
+      if (!driverPos) return null;
+      if (trip?.status === 'in_progress' && trip?.dropoff_lat)
+        return haversine(driverPos[0], driverPos[1], trip.dropoff_lat, trip.dropoff_lng);
+      if (trip?.pickup_lat)
+        return haversine(driverPos[0], driverPos[1], trip.pickup_lat, trip.pickup_lng);
+      return null;
+    })();
+    if (raw == null) return;
+    setSmoothDistKm(prev => {
+      if (prev == null) return raw;
+      return +((0.2 * raw + 0.8 * prev).toFixed(2));
+    });
   }, [driverPos, trip?.status, trip?.pickup_lat, trip?.dropoff_lat]);
 
+  const liveDistKm = smoothDistKm;
   const liveEtaMin = liveDistKm != null ? Math.max(1, Math.round(liveDistKm * 3)) : null;
 
   // Progress % for the route bar: 0% = at pickup, 100% = at dropoff

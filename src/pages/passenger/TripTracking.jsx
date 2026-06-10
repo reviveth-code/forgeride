@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Phone, Star, Loader2 } from 'lucide-react';
@@ -51,6 +51,9 @@ export default function TripTracking() {
   const navigate = useNavigate();
   const [trip, setTrip] = useState(null);
   const [driverProfile, setDriverProfile] = useState(null);
+  const [driverOffline, setDriverOffline] = useState(false);
+  const lastDriverUpdateRef = useRef(null);
+  const smoothDistRef = useRef(null);
 
   useEffect(() => {
     const loadTrip = async () => {
@@ -83,22 +86,53 @@ export default function TripTracking() {
   const pickupPos = trip?.pickup_lat ? [trip.pickup_lat, trip.pickup_lng] : null;
   const dropoffPos = trip?.dropoff_lat ? [trip.dropoff_lat, trip.dropoff_lng] : null;
 
-  const liveDistKm = useMemo(() => {
-    if (!driverPos) return null;
-    if (trip?.status === 'in_progress') return haversine(trip.driver_lat, trip.driver_lng, trip.dropoff_lat, trip.dropoff_lng);
-    return haversine(trip.driver_lat, trip.driver_lng, trip.pickup_lat, trip.pickup_lng);
+  // Track when driver location last changed — detect offline
+  useEffect(() => {
+    if (trip?.driver_lat && trip?.driver_lng) {
+      const key = `${trip.driver_lat},${trip.driver_lng}`;
+      if (lastDriverUpdateRef.current !== key) {
+        lastDriverUpdateRef.current = key;
+        setDriverOffline(false);
+      }
+    }
+  }, [trip?.driver_lat, trip?.driver_lng]);
+
+  // Mark driver offline if no location update for 60s
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (trip?.status === 'in_progress' || trip?.status === 'driver_arriving') {
+        setDriverOffline(true);
+      }
+    }, 60000);
+    return () => clearTimeout(t);
   }, [trip?.driver_lat, trip?.driver_lng, trip?.status]);
 
+  // Smooth distance with exponential moving average (alpha=0.2 → slow smooth)
+  const [smoothDistKm, setSmoothDistKm] = useState(null);
+  useEffect(() => {
+    const raw = (() => {
+      if (!driverPos) return null;
+      if (trip?.status === 'in_progress') return haversine(trip.driver_lat, trip.driver_lng, trip.dropoff_lat, trip.dropoff_lng);
+      return haversine(trip.driver_lat, trip.driver_lng, trip.pickup_lat, trip.pickup_lng);
+    })();
+    if (raw == null) return;
+    setSmoothDistKm(prev => {
+      if (prev == null) return raw;
+      return +((0.2 * raw + 0.8 * prev).toFixed(2));
+    });
+  }, [trip?.driver_lat, trip?.driver_lng, trip?.status]);
+
+  const liveDistKm = smoothDistKm;
   const liveEtaMin = liveDistKm != null ? Math.max(1, Math.round(liveDistKm * 3)) : null;
 
-  // Trip progress % (only when in_progress)
+  // Trip progress % (only when in_progress) — use smoothed distance
   const progressPct = useMemo(() => {
     if (!driverPos || !pickupPos || !dropoffPos || trip?.status !== 'in_progress') return 0;
     const total = haversine(trip.pickup_lat, trip.pickup_lng, trip.dropoff_lat, trip.dropoff_lng);
-    const remaining = haversine(trip.driver_lat, trip.driver_lng, trip.dropoff_lat, trip.dropoff_lng);
+    const remaining = smoothDistKm ?? haversine(trip.driver_lat, trip.driver_lng, trip.dropoff_lat, trip.dropoff_lng);
     if (!total || total === 0) return 0;
     return Math.min(100, Math.max(0, Math.round(((total - remaining) / total) * 100)));
-  }, [trip?.driver_lat, trip?.driver_lng, trip?.status, trip?.pickup_lat, trip?.dropoff_lat]);
+  }, [smoothDistKm, trip?.status, trip?.pickup_lat, trip?.dropoff_lat]);
 
   const fitPositions = [driverPos, pickupPos, dropoffPos].filter(Boolean);
 
@@ -142,10 +176,16 @@ export default function TripTracking() {
             ? <FitBounds positions={fitPositions} />
             : null}
         </MapContainer>
-        {driverPos && (
+        {driverPos && !driverOffline && (
           <div className="absolute top-3 left-3 z-[1000] bg-card rounded-full px-3 py-1.5 shadow-lg flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-xs font-bold text-foreground">Live Tracking</span>
+          </div>
+        )}
+        {driverOffline && (
+          <div className="absolute top-3 left-3 z-[1000] bg-orange-100 border border-orange-300 rounded-full px-3 py-1.5 shadow-lg flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-orange-500" />
+            <span className="text-xs font-bold text-orange-700">Driver signal lost</span>
           </div>
         )}
       </div>
