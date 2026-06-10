@@ -52,6 +52,7 @@ export default function TripTracking() {
   const [trip, setTrip] = useState(null);
   const [driverProfile, setDriverProfile] = useState(null);
   const [driverOffline, setDriverOffline] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const lastDriverUpdateRef = useRef(null);
   const smoothDistRef = useRef(null);
 
@@ -160,41 +161,54 @@ export default function TripTracking() {
         )}
       </div>
 
-      {/* Map — only shown before pickup is confirmed */}
-      {trip?.status !== 'in_progress' ? (
-        <div className="relative" style={{ height: '45vh', minHeight: '280px' }}>
-          <MapContainer
-            center={driverPos || pickupPos || [6.5244, 3.3792]}
-            zoom={14}
-            style={{ height: '100%', width: '100%' }}
-            zoomControl={false} attributionControl={false}
-          >
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {driverPos && <SmoothDriverMarker position={driverPos} />}
-            {pickupPos && <PinMarker position={pickupPos} color="#E85A0F" emoji="📍" label="Pickup" />}
-            {dropoffPos && <PinMarker position={dropoffPos} color="#0D1B3E" emoji="🏁" label="Dropoff" />}
-            {fitPositions.length >= 2
-              ? <FitBounds positions={fitPositions} />
-              : null}
-          </MapContainer>
-          {driverPos && !driverOffline && (
-            <div className="absolute top-3 left-3 z-[1000] bg-card rounded-full px-3 py-1.5 shadow-lg flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs font-bold text-foreground">Live Tracking</span>
+      {/* Map */}
+      <div className="relative" style={{ height: '45vh', minHeight: '280px', display: (trip?.status === 'in_progress' && !showMap) ? 'none' : 'block' }}>
+        <MapContainer
+          center={driverPos || pickupPos || [6.5244, 3.3792]}
+          zoom={14}
+          style={{ height: '100%', width: '100%' }}
+          zoomControl={false} attributionControl={false}
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          {driverPos && <SmoothDriverMarker position={driverPos} />}
+          {pickupPos && <PinMarker position={pickupPos} color="#E85A0F" emoji="📍" label="Pickup" />}
+          {dropoffPos && <PinMarker position={dropoffPos} color="#0D1B3E" emoji="🏁" label="Dropoff" />}
+          {fitPositions.length >= 2 ? <FitBounds positions={fitPositions} /> : null}
+        </MapContainer>
+        {driverPos && !driverOffline && (
+          <div className="absolute top-3 left-3 z-[1000] bg-card rounded-full px-3 py-1.5 shadow-lg flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-xs font-bold text-foreground">Live Tracking</span>
+          </div>
+        )}
+        {driverOffline && (
+          <div className="absolute top-3 left-3 z-[1000] bg-orange-100 border border-orange-300 rounded-full px-3 py-1.5 shadow-lg flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-orange-500" />
+            <span className="text-xs font-bold text-orange-700">Driver signal lost</span>
+          </div>
+        )}
+        {trip?.status === 'in_progress' && (
+          <button onClick={() => setShowMap(false)}
+            className="absolute top-3 right-3 z-[1000] bg-card rounded-full px-3 py-1.5 shadow-lg text-xs font-bold text-foreground">
+            Hide Map ✕
+          </button>
+        )}
+      </div>
+
+      {/* In-progress compact banner (replaces map when hidden) */}
+      {trip?.status === 'in_progress' && !showMap && (
+        <div className="bg-forge-navy px-5 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🚗</span>
+            <div>
+              <p className="text-white font-extrabold text-sm">Trip In Progress</p>
+              <p className="text-white/60 text-xs">{liveDistKm != null ? `${liveDistKm} km to dropoff` : 'Calculating...'}</p>
             </div>
-          )}
-          {driverOffline && (
-            <div className="absolute top-3 left-3 z-[1000] bg-orange-100 border border-orange-300 rounded-full px-3 py-1.5 shadow-lg flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-orange-500" />
-              <span className="text-xs font-bold text-orange-700">Driver signal lost</span>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="bg-forge-navy px-5 py-6 flex flex-col items-center gap-2">
-          <span className="text-4xl">🚗</span>
-          <p className="text-white font-extrabold text-base">You're on your way!</p>
-          <p className="text-white/70 text-xs text-center">Sit back and relax. You'll be notified when you arrive.</p>
+          </div>
+          <button onClick={() => setShowMap(true)}
+            className="bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-full">
+            Show Map
+          </button>
         </div>
       )}
 
