@@ -13,7 +13,7 @@ function haversine(lat1, lng1, lat2, lng2) {
   return +(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
 }
 
-const REQUEST_TTL_MS = 2 * 60 * 1000; // 2 minutes
+const REQUEST_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 function useCountdown(createdDate) {
   const [secsLeft, setSecsLeft] = useState(0);
@@ -145,8 +145,18 @@ export default function NearbyRequests() {
 
       <div className="px-5 space-y-3 pb-6">
         {filtered.length === 0 ? (
-          <div className="bg-card rounded-2xl p-10 text-center text-muted-foreground text-sm mt-2">
-            No requests found. Check back soon!
+          <div className="bg-card rounded-2xl p-10 text-center mt-2 space-y-2">
+            {!driverPos ? (
+              <>
+                <p className="text-sm font-semibold text-foreground">Getting your location…</p>
+                <p className="text-xs text-muted-foreground">Please allow location access. Requests will appear once your location is detected.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-foreground">No open requests within 10km</p>
+                <p className="text-xs text-muted-foreground">Pull down to refresh or check back shortly.</p>
+              </>
+            )}
           </div>
         ) : (
           filtered.map(req => (
