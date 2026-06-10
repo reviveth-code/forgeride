@@ -105,7 +105,7 @@ export default function NewRequest() {
       status: 'open',
       estimated_distance_km: distanceKm,
       estimated_duration_min: durationMin,
-      passenger_name: user?.full_name || '',
+      passenger_name: user?.display_name || user?.full_name || '',
       is_for_someone_else: forSomeoneElse,
       recipient_name: forSomeoneElse ? recipientName : '',
       recipient_phone: forSomeoneElse ? recipientPhone : '',
