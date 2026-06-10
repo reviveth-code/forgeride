@@ -12,6 +12,7 @@ export default function ActiveTrip() {
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(false);
   const [driverPos, setDriverPos] = useState(null);
+  const [showEndWarning, setShowEndWarning] = useState(false);
 
   // Live distance from driver to target (pickup while arriving, dropoff during trip)
   const liveDistKm = useMemo(() => {
@@ -65,6 +66,18 @@ export default function ActiveTrip() {
 
   const endTrip = async () => {
     if (trip?.status !== 'in_progress') return;
+    // Check if driver is near dropoff (within 0.2km)
+    if (liveDistKm != null && liveDistKm > 0.2) {
+      setShowEndWarning(true);
+      return;
+    }
+    setLoading(true);
+    await base44.entities.Trip.update(tripId, { status: 'completed', duration_min: 26 });
+    navigate(`/driver/trip-complete/${tripId}`);
+  };
+
+  const confirmEndTrip = async () => {
+    setShowEndWarning(false);
     setLoading(true);
     await base44.entities.Trip.update(tripId, { status: 'completed', duration_min: 26 });
     navigate(`/driver/trip-complete/${tripId}`);
@@ -169,6 +182,37 @@ export default function ActiveTrip() {
           <div className="text-center text-gray-400 py-4">Loading trip...</div>
         )}
       </div>
+
+      {/* End Trip Warning Dialog */}
+      {showEndWarning && (
+        <div className="fixed inset-0 bg-black/50 flex items-end z-50">
+          <div className="bg-card w-full rounded-t-3xl p-6 max-w-md mx-auto">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-8 h-8 text-orange-500" />
+              </div>
+            </div>
+            <h3 className="text-xl font-extrabold text-center mb-2 text-foreground">Not at Dropoff Location</h3>
+            <p className="text-sm text-gray-400 text-center mb-4">You appear to be <span className="font-bold text-forge-orange">{liveDistKm} km</span> away from the dropoff point. Are you sure you want to end this trip?</p>
+            <div className="flex gap-3 mb-4">
+              <div className="flex-1 bg-background rounded-xl p-3 text-center">
+                <p className="text-xs text-muted-foreground">Dropoff</p>
+                <p className="text-sm font-bold text-foreground truncate">{trip?.dropoff_address?.split(',')[0] || '...'}</p>
+              </div>
+              <div className="flex-1 bg-background rounded-xl p-3 text-center">
+                <p className="text-xs text-muted-foreground">Your Location</p>
+                <p className="text-sm font-bold text-forge-orange">{liveDistKm} km away</p>
+              </div>
+            </div>
+            <button onClick={confirmEndTrip} className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl text-base mb-3">
+              Yes, End Trip Anyway
+            </button>
+            <button onClick={() => setShowEndWarning(false)} className="w-full border-2 border-border text-foreground font-bold py-4 rounded-2xl text-base">
+              Cancel — I'm Not There Yet
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
