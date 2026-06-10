@@ -31,6 +31,7 @@ import DriverTripComplete from './pages/driver/TripComplete';
 import DriverHistory from './pages/driver/History';
 import DriverProfile from './pages/driver/Profile';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import PlayStoreAssets from './pages/PlayStoreAssets';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -71,6 +72,7 @@ const AuthenticatedApp = () => {
       <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
       <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
       <Route path="/privacy-policy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+      <Route path="/play-store-assets" element={<PageTransition><PlayStoreAssets /></PageTransition>} />
 
       {/* Passenger standalone screens (no bottom nav) */}
       <Route path="/passenger/new-request" element={<PageTransition><NewRequest /></PageTransition>} />
