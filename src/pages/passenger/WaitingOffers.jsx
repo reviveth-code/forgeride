@@ -56,20 +56,17 @@ export default function WaitingOffers() {
     base44.entities.RideRequest.get(requestId).then(req => {
       setRequest(req);
 
-      // If already matched/active, redirect to appropriate screen
+      // If already matched/active, redirect to offers
       if (req.status === 'matched' || req.status === 'active') {
         navigate(`/passenger/offers/${requestId}`);
         return;
       }
 
-      // If already cancelled/completed by something else, just go home
-      if (req.status === 'cancelled' || req.status === 'completed') {
-        navigate('/passenger');
-        return;
-      }
-
-      // req.status === 'open' — start countdown
-      const createdAt = new Date(req.created_date).getTime();
+      // req.status === 'open' (or cancelled/completed — just start timer, don't expire instantly)
+      // Force UTC parsing — append 'Z' if not already present to avoid local-time misparse
+      const rawDate = req.created_date;
+      const dateStr = typeof rawDate === 'string' && !rawDate.endsWith('Z') ? rawDate + 'Z' : rawDate;
+      const createdAt = new Date(dateStr).getTime();
       if (isNaN(createdAt)) return;
 
       const tick = () => {

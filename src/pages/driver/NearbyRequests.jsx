@@ -19,7 +19,8 @@ function useCountdown(createdDate) {
   const [secsLeft, setSecsLeft] = useState(0);
   useEffect(() => {
     const tick = () => {
-      const elapsed = Date.now() - new Date(createdDate).getTime();
+      const dateStr = typeof createdDate === 'string' && !createdDate.endsWith('Z') ? createdDate + 'Z' : createdDate;
+      const elapsed = Date.now() - new Date(dateStr).getTime();
       setSecsLeft(Math.max(0, Math.floor((REQUEST_TTL_MS - elapsed) / 1000)));
     };
     tick();
@@ -111,7 +112,10 @@ export default function NearbyRequests() {
 
   const filtered = requests
     .filter(r => filter === 'all' || r.request_type === filter)
-    .filter(r => (Date.now() - new Date(r.created_date).getTime()) < REQUEST_TTL_MS)
+    .filter(r => {
+      const ds = typeof r.created_date === 'string' && !r.created_date.endsWith('Z') ? r.created_date + 'Z' : r.created_date;
+      return (Date.now() - new Date(ds).getTime()) < REQUEST_TTL_MS;
+    })
     .filter(r => {
       if (!driverPos) return true; // show all while location is loading
       if (!r.pickup_lat || !r.pickup_lng) return true; // no coords on request, show it

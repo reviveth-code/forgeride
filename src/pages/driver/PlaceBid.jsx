@@ -69,7 +69,9 @@ export default function PlaceBid() {
   useEffect(() => {
     if (!request) return;
     const tick = () => {
-      const elapsed = Date.now() - new Date(request.created_date).getTime();
+      const rawDate = request.created_date;
+      const dateStr = typeof rawDate === 'string' && !rawDate.endsWith('Z') ? rawDate + 'Z' : rawDate;
+      const elapsed = Date.now() - new Date(dateStr).getTime();
       const secs = Math.max(0, Math.floor((REQUEST_TTL_MS - elapsed) / 1000));
       setSecsLeft(secs);
     };
