@@ -186,8 +186,16 @@ export default function ActiveTrip() {
         </button>
       </div>
 
+      {/* Phone-on warning banner */}
+      <div className="absolute top-16 left-4 right-4 z-10 mb-1">
+        <div className="bg-yellow-500/95 rounded-2xl px-4 py-2 flex items-center gap-2 shadow-lg">
+          <span className="text-lg">📵</span>
+          <span className="text-white text-xs font-bold">Keep your phone on & screen active during the trip</span>
+        </div>
+      </div>
+
       {/* Navigation banner */}
-      <div className="absolute top-16 left-4 right-4 z-10">
+      <div className="absolute top-28 left-4 right-4 z-10">
         <div className="bg-forge-navy/95 rounded-2xl px-4 py-2.5 flex items-center justify-between shadow-xl">
           <div className="flex items-center gap-2">
             <Navigation className="w-4 h-4 text-forge-orange flex-shrink-0" />
