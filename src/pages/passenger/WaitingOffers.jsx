@@ -49,11 +49,14 @@ export default function WaitingOffers() {
   });
 
   useEffect(() => {
+    let timer;
     base44.entities.RideRequest.get(requestId).then(req => {
       setRequest(req);
-      // Start countdown timer
+      const createdAt = new Date(req.created_date).getTime();
       const tick = () => {
-        const elapsed = Date.now() - new Date(req.created_date).getTime();
+        const elapsed = Date.now() - createdAt;
+        // Guard against clock skew — only start counting after 2s elapsed
+        if (elapsed < 2000) return;
         const remaining = Math.max(0, Math.floor((REQUEST_TTL_MS - elapsed) / 1000));
         setSecsLeft(remaining);
         if (remaining === 0) {
@@ -62,8 +65,7 @@ export default function WaitingOffers() {
         }
       };
       tick();
-      const timer = setInterval(tick, 1000);
-      return () => clearInterval(timer);
+      timer = setInterval(tick, 1000);
     });
     loadBids();
     const unsub = base44.entities.Bid.subscribe(() => loadBids());
@@ -71,7 +73,7 @@ export default function WaitingOffers() {
       const uniqueDrivers = new Set(allBids.map(b => b.driver_id));
       setNearbyDrivers(uniqueDrivers.size || null);
     });
-    return unsub;
+    return () => { unsub(); clearInterval(timer); };
   }, [requestId]);
 
   const handleCancel = async () => {
