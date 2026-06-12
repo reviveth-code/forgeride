@@ -9,6 +9,7 @@ export default function Splash() {
     base44.auth.isAuthenticated().then(async (isAuth) => {
       if (isAuth) {
         const user = await base44.auth.me();
+        if (!user.app_role) return; // Stay on splash, let them choose
         navigate(user.app_role === 'driver' ? '/driver' : '/passenger');
       }
     });

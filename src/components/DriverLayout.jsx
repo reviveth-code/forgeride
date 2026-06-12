@@ -1,4 +1,6 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
 import { Home, Briefcase, Clock, User } from 'lucide-react';
 
 const tabs = [
@@ -11,6 +13,12 @@ const tabs = [
 export default function DriverLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    base44.auth.me().then(u => {
+      if (u?.app_role === 'passenger') navigate('/passenger', { replace: true });
+    }).catch(() => navigate('/login', { replace: true }));
+  }, []);
 
   const handleTabPress = (path) => {
     if (location.pathname === path) {

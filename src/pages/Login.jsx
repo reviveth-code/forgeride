@@ -18,6 +18,10 @@ export default function Login() {
     try {
       await base44.auth.loginViaEmailPassword(email.trim(), password);
       const user = await base44.auth.me();
+      if (!user.app_role) {
+        window.location.href = '/register';
+        return;
+      }
       window.location.href = user.app_role === 'driver' ? '/driver' : '/passenger';
     } catch {
       setError('Login failed. Check your credentials or sign up first.');
