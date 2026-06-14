@@ -3,5 +3,5 @@ import WalletPage from '@/components/WalletPage';
 
 export default function DriverWallet() {
   const navigate = useNavigate();
-  return <WalletPage onBack={() => navigate('/driver/profile')} />;
+  return <WalletPage onBack={() => navigate('/driver/profile')} canWithdraw={true} />;
 }

@@ -16,7 +16,8 @@
         "funding",
         "payment",
         "earning",
-        "refund"
+        "refund",
+        "withdrawal"
       ],
       "title": "Type"
     },

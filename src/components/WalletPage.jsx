@@ -1,14 +1,44 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Wallet, ArrowUpRight, ArrowDownLeft, Clock, Loader2, X, Banknote, RefreshCw, ChevronLeft } from 'lucide-react';
+import { Wallet, ArrowUpRight, ArrowDownLeft, Clock, Loader2, X, Banknote, RefreshCw, ChevronLeft, Send, Building2 } from 'lucide-react';
 
-export default function WalletPage({ onBack }) {
+const NIGERIAN_BANKS = [
+  { name: 'Access Bank', code: '044' },
+  { name: 'First Bank', code: '011' },
+  { name: 'GTBank', code: '058' },
+  { name: 'UBA', code: '033' },
+  { name: 'Zenith Bank', code: '057' },
+  { name: 'Kuda Bank', code: '50211' },
+  { name: 'Opay', code: '100004' },
+  { name: 'PalmPay', code: '100033' },
+  { name: 'Polaris Bank', code: '076' },
+  { name: 'Fidelity Bank', code: '070' },
+  { name: 'Union Bank', code: '032' },
+  { name: 'Stanbic IBTC', code: '221' },
+  { name: 'Heritage Bank', code: '030' },
+  { name: 'Keystone Bank', code: '082' },
+  { name: 'Ecobank', code: '050' },
+  { name: 'Wema Bank', code: '035' },
+  { name: 'FCMB', code: '214' },
+  { name: 'Sterling Bank', code: '232' },
+  { name: 'Unity Bank', code: '215' },
+  { name: 'Providus Bank', code: '101' },
+];
+
+export default function WalletPage({ onBack, canWithdraw }) {
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showFund, setShowFund] = useState(false);
   const [amount, setAmount] = useState('');
   const [funding, setFunding] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [bankCode, setBankCode] = useState('');
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawError, setWithdrawError] = useState('');
+  const [withdrawSuccess, setWithdrawSuccess] = useState('');
   const [error, setError] = useState('');
 
   const loadWallet = async () => {
@@ -55,11 +85,56 @@ export default function WalletPage({ onBack }) {
     }
   };
 
+  const handleWithdraw = async () => {
+    const num = parseInt(withdrawAmount);
+    if (!num || num < 500) {
+      setWithdrawError('Minimum ₦500');
+      return;
+    }
+    if (num > (wallet?.balance || 0)) {
+      setWithdrawError('Insufficient balance');
+      return;
+    }
+    if (accountNumber.length !== 10) {
+      setWithdrawError('Enter a valid 10-digit account number');
+      return;
+    }
+    if (!bankCode) {
+      setWithdrawError('Select a bank');
+      return;
+    }
+    setWithdrawError('');
+    setWithdrawing(true);
+    try {
+      const res = await base44.functions.invoke('processWithdrawal', {
+        amount: num,
+        account_number: accountNumber,
+        bank_code: bankCode,
+      });
+      if (res.data?.success) {
+        setWithdrawSuccess(res.data.message || `₦${num.toLocaleString()} withdrawal processing`);
+        setShowWithdraw(false);
+        setWithdrawAmount('');
+        setAccountNumber('');
+        setBankCode('');
+        loadWallet();
+        setTimeout(() => setWithdrawSuccess(''), 5000);
+      } else {
+        setWithdrawError(res.data?.error || 'Withdrawal failed');
+      }
+    } catch {
+      setWithdrawError('Withdrawal failed. Try again.');
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
   const typeConfig = {
     funding: { icon: ArrowDownLeft, color: 'text-green-500', bg: 'bg-green-50', label: 'Funding' },
     payment: { icon: ArrowUpRight, color: 'text-red-500', bg: 'bg-red-50', label: 'Payment' },
     earning: { icon: ArrowDownLeft, color: 'text-green-500', bg: 'bg-green-50', label: 'Earning' },
     refund: { icon: ArrowDownLeft, color: 'text-blue-500', bg: 'bg-blue-50', label: 'Refund' },
+    withdrawal: { icon: ArrowUpRight, color: 'text-red-500', bg: 'bg-red-50', label: 'Withdrawal' },
   };
 
   const statusBadge = (status) => {
@@ -107,8 +182,17 @@ export default function WalletPage({ onBack }) {
         </div>
       </div>
 
+      {/* Success banner */}
+      {withdrawSuccess && (
+        <div className="px-5 -mt-2 mb-2">
+          <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 text-green-700 text-sm font-bold flex items-center gap-2">
+            ✅ {withdrawSuccess}
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
-      <div className="px-5 -mt-4 mb-4">
+      <div className="px-5 -mt-4 mb-4 space-y-2">
         <button
           onClick={() => { setShowFund(true); setAmount(''); setError(''); }}
           className="w-full bg-card rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm"
@@ -122,6 +206,22 @@ export default function WalletPage({ onBack }) {
           </div>
           <ArrowUpRight className="w-4 h-4 text-gray-300" />
         </button>
+
+        {canWithdraw && (
+          <button
+            onClick={() => { setShowWithdraw(true); setWithdrawAmount(''); setAccountNumber(''); setBankCode(''); setWithdrawError(''); }}
+            className="w-full bg-card rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm"
+          >
+            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Send className="w-5 h-5 text-red-500" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-semibold text-foreground text-sm">Withdraw</p>
+              <p className="text-xs text-gray-400 mt-0.5">Send money to your bank account</p>
+            </div>
+            <ArrowUpRight className="w-4 h-4 text-gray-300" />
+          </button>
+        )}
       </div>
 
       {/* Transaction History */}
@@ -167,6 +267,97 @@ export default function WalletPage({ onBack }) {
           </div>
         )}
       </div>
+
+      {/* Withdraw Modal */}
+      {showWithdraw && (
+        <div className="fixed inset-0 bg-black/40 z-[210] flex flex-col justify-end" onClick={(e) => { if (e.target === e.currentTarget) setShowWithdraw(false); }}>
+          <div className="bg-card rounded-t-3xl w-full max-w-md mx-auto p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-extrabold text-foreground">Withdraw to Bank</h2>
+              <button onClick={() => setShowWithdraw(false)} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Amount (₦)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">₦</span>
+                  <input
+                    type="number"
+                    value={withdrawAmount}
+                    onChange={(e) => { setWithdrawAmount(e.target.value); setWithdrawError(''); }}
+                    placeholder="Enter amount"
+                    className="w-full pl-10 pr-4 py-4 border border-gray-200 rounded-2xl text-lg font-bold focus:outline-none focus:border-forge-orange"
+                    min="500"
+                    max={wallet?.balance}
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Balance: ₦{(wallet?.balance || 0).toLocaleString()}</p>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Account Number</label>
+                <input
+                  type="tel"
+                  maxLength={10}
+                  value={accountNumber}
+                  onChange={(e) => { setAccountNumber(e.target.value.replace(/\D/g, '')); setWithdrawError(''); }}
+                  placeholder="10-digit NUBAN account number"
+                  className="w-full px-4 py-4 border border-gray-200 rounded-2xl text-sm font-bold focus:outline-none focus:border-forge-orange"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Bank</label>
+                <select
+                  value={bankCode}
+                  onChange={(e) => { setBankCode(e.target.value); setWithdrawError(''); }}
+                  className="w-full px-4 py-4 border border-gray-200 rounded-2xl text-sm font-bold focus:outline-none focus:border-forge-orange bg-card"
+                >
+                  <option value="">Select your bank</option>
+                  {NIGERIAN_BANKS.map((b) => (
+                    <option key={b.code} value={b.code}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Quick amounts */}
+              <div className="grid grid-cols-3 gap-2">
+                {[1000, 2000, 5000, 10000, 20000, (wallet?.balance || 0)].filter(v => v > 0).slice(0, 6).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => { setWithdrawAmount(v.toString()); setWithdrawError(''); }}
+                    className={`py-3 rounded-2xl text-sm font-bold border transition-colors ${
+                      withdrawAmount === v.toString()
+                        ? 'bg-forge-orange text-white border-forge-orange'
+                        : 'bg-gray-50 text-gray-600 border-gray-200'
+                    }`}
+                  >
+                    ₦{v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v}
+                  </button>
+                ))}
+              </div>
+
+              {withdrawError && <p className="text-sm text-red-500 font-medium">{withdrawError}</p>}
+
+              <p className="text-xs text-gray-400">
+                Funds will be transferred to your bank account via Paystack. This usually takes a few minutes.
+              </p>
+
+              <button
+                onClick={handleWithdraw}
+                disabled={withdrawing}
+                className="w-full bg-forge-orange text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {withdrawing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {withdrawing ? 'Processing...' : 'Withdraw to Bank'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Fund Modal */}
       {showFund && (
