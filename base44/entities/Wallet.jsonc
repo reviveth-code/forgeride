@@ -1,0 +1,23 @@
+{
+  "name": "Wallet",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "title": "User ID (email)"
+    },
+    "balance": {
+      "type": "number",
+      "title": "Balance (\u20a6)",
+      "default": 0
+    },
+    "currency": {
+      "type": "string",
+      "title": "Currency",
+      "default": "NGN"
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

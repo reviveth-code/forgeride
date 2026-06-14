@@ -22,6 +22,7 @@ import PassengerRequests from './pages/passenger/Requests';
 import PassengerTrack from './pages/passenger/Track';
 import PassengerProfile from './pages/passenger/Profile';
 import TripHistory from './pages/passenger/TripHistory';
+import PassengerWallet from './pages/passenger/Wallet';
 import DriverDashboard from './pages/driver/Dashboard';
 import NearbyRequests from './pages/driver/NearbyRequests';
 import PlaceBid from './pages/driver/PlaceBid';
@@ -29,6 +30,7 @@ import BidSubmitted from './pages/driver/BidSubmitted';
 import ActiveTrip from './pages/driver/ActiveTrip';
 import DriverTripComplete from './pages/driver/TripComplete';
 import DriverHistory from './pages/driver/History';
+import DriverWallet from './pages/driver/Wallet';
 import DriverProfile from './pages/driver/Profile';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PlayStoreAssets from './pages/PlayStoreAssets';
@@ -88,6 +90,7 @@ const AuthenticatedApp = () => {
         <Route path="/passenger/requests" element={<PassengerRequests />} />
         <Route path="/passenger/track" element={<PassengerTrack />} />
         <Route path="/passenger/profile" element={<PassengerProfile />} />
+        <Route path="/passenger/wallet" element={<PassengerWallet />} />
       </Route>
 
       {/* Driver standalone screens (no bottom nav) */}
@@ -102,6 +105,7 @@ const AuthenticatedApp = () => {
         <Route path="/driver/requests" element={<NearbyRequests />} />
         <Route path="/driver/history" element={<DriverHistory />} />
         <Route path="/driver/profile" element={<DriverProfile />} />
+        <Route path="/driver/wallet" element={<DriverWallet />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />

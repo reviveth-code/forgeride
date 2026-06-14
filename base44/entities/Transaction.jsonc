@@ -1,0 +1,57 @@
+{
+  "name": "Transaction",
+  "type": "object",
+  "properties": {
+    "wallet_id": {
+      "type": "string",
+      "title": "Wallet ID"
+    },
+    "user_id": {
+      "type": "string",
+      "title": "User ID"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "funding",
+        "payment",
+        "earning",
+        "refund"
+      ],
+      "title": "Type"
+    },
+    "amount": {
+      "type": "number",
+      "title": "Amount (\u20a6)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "success",
+        "failed"
+      ],
+      "title": "Status",
+      "default": "pending"
+    },
+    "reference": {
+      "type": "string",
+      "title": "Reference"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "metadata": {
+      "type": "object",
+      "title": "Metadata"
+    }
+  },
+  "required": [
+    "wallet_id",
+    "user_id",
+    "type",
+    "amount",
+    "reference"
+  ]
+}

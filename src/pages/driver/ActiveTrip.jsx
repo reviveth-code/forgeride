@@ -155,6 +155,35 @@ export default function ActiveTrip() {
   const doEndTrip = async () => {
     setLoading(true);
     await base44.entities.Trip.update(tripId, { status: 'completed' });
+
+    // Credit driver's wallet with the agreed fare
+    if (trip?.agreed_price && trip?.driver_id) {
+      const driverWallets = await base44.entities.Wallet.filter({ user_id: trip.driver_id });
+      let driverWallet;
+      if (driverWallets.length > 0) {
+        driverWallet = driverWallets[0];
+        await base44.entities.Wallet.update(driverWallet.id, {
+          balance: (driverWallet.balance || 0) + trip.agreed_price,
+        });
+      } else {
+        driverWallet = await base44.entities.Wallet.create({
+          user_id: trip.driver_id,
+          balance: trip.agreed_price,
+          currency: 'NGN',
+        });
+      }
+      await base44.entities.Transaction.create({
+        wallet_id: driverWallet.id,
+        user_id: trip.driver_id,
+        type: 'earning',
+        amount: trip.agreed_price,
+        status: 'success',
+        reference: `EARN-${tripId}`,
+        description: `Trip fare from ${trip.passenger_name || 'Passenger'}`,
+        metadata: { trip_id: tripId, passenger_id: trip.passenger_id },
+      });
+    }
+
     navigate(`/driver/trip-complete/${tripId}`);
   };
 

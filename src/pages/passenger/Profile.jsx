@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { LogOut, User, Phone, Shield, Star, ChevronRight, Clock, Loader2, X, CheckCircle2, Trash2 } from 'lucide-react';
+import { LogOut, User, Phone, Shield, Star, ChevronRight, Clock, Loader2, X, CheckCircle2, Trash2, Wallet } from 'lucide-react';
 import PhoneVerificationModal from '@/components/PhoneVerificationModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
@@ -151,6 +151,19 @@ export default function PassengerProfile() {
             ? <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">Verified</span>
             : <ChevronRight className="w-4 h-4 text-gray-300" />
           }
+        </button>
+
+        {/* Wallet */}
+        <button onClick={() => navigate('/passenger/wallet')}
+          className="w-full bg-card rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm">
+          <div className="w-10 h-10 bg-forge-orange/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Wallet className="w-5 h-5 text-forge-orange" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-semibold text-foreground text-sm">Wallet</p>
+            <p className="text-xs text-gray-400 mt-0.5">Manage your balance & transactions</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-300" />
         </button>
 
         {/* Trip History */}
