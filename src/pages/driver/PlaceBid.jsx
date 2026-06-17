@@ -42,11 +42,19 @@ export default function PlaceBid() {
   const [walletBalance, setWalletBalance] = useState(null);
   const [walletInsufficient, setWalletInsufficient] = useState(false);
 
+  const FORGE_COMMISSION_RATE = 0.1;
+
   useEffect(() => {
     base44.entities.RideRequest.get(requestId).then(setRequest);
     base44.auth.me().then(async (u) => {
       setUser(u);
       if (u?.email) {
+        // Check wallet balance
+        const wallets = await base44.entities.Wallet.filter({ user_id: u.email });
+        const bal = wallets.length > 0 ? (wallets[0].balance || 0) : 0;
+        setWalletBalance(bal);
+        setWalletInsufficient(bal < Math.round(price * FORGE_COMMISSION_RATE));
+
         // Check for existing bid by this driver on this request
         const existing = await base44.entities.Bid.filter({ request_id: requestId, driver_id: u.email });
         const active = existing.find(b => b.status === 'pending' || b.status === 'accepted');
