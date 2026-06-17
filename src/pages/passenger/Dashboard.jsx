@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Bell, MapPin, User, Package, ChevronRight, Plus, Info } from 'lucide-react';
+import { Bell, MapPin, User, Package, ChevronRight, Plus, Info, Wallet } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import DriversNearbyCard from '@/components/passenger/DriversNearbyCard';
 import useCurrentLocation from '@/hooks/useCurrentLocation';
@@ -63,6 +63,9 @@ export default function PassengerDashboard() {
             <h1 className="text-2xl font-extrabold text-gray-900">{(user?.display_name || user?.full_name || 'User').split(' ')[0]}</h1>
           </div>
           <div className="flex items-center gap-3">
+            <Link to="/passenger/wallet" className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+              <Wallet className="w-5 h-5 text-gray-600" />
+            </Link>
             <button onClick={() => setNotifOpen(true)} className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
               <Bell className="w-5 h-5 text-gray-600" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-forge-orange rounded-full" />

@@ -53,24 +53,6 @@ export default function DriverOffers() {
 
     const user = await base44.auth.me();
 
-    // Wallet: check balance and deduct
-    const wallets = await base44.entities.Wallet.filter({ user_id: user.email });
-    const wallet = wallets[0];
-    if (wallet && wallet.balance >= bid.price) {
-      await base44.entities.Wallet.update(wallet.id, { balance: wallet.balance - bid.price });
-      await base44.entities.Transaction.create({
-        wallet_id: wallet.id,
-        user_id: user.email,
-        type: 'payment',
-        amount: bid.price,
-        status: 'success',
-        reference: `PAY-${bid.id}`,
-        description: `Ride payment to ${bid.driver_name}`,
-        metadata: { bid_id: bid.id, driver_id: bid.driver_id },
-      });
-    }
-    // If insufficient balance or no wallet, still allow the ride (graceful fallback)
-
     await base44.entities.Bid.update(bid.id, { status: 'accepted' });
     await base44.entities.RideRequest.update(requestId, { status: 'matched' });
     const trip = await base44.entities.Trip.create({

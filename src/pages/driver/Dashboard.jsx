@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Bell, Star, User, Package, MapPin } from 'lucide-react';
+import { Bell, Star, User, Package, MapPin, Wallet } from 'lucide-react';
 import useCurrentLocation from '@/hooks/useCurrentLocation';
 
 const playChime = () => {
@@ -103,6 +103,9 @@ export default function DriverDashboard() {
               <h1 className="text-xl font-extrabold text-foreground">{user?.display_name || user?.full_name || 'Driver'} 🔥</h1>
             </div>
           </div>
+          <Link to="/driver/wallet" className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+            <Wallet className="w-5 h-5 text-gray-600" />
+          </Link>
           <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
             <Bell className="w-5 h-5 text-gray-600" />
           </button>
