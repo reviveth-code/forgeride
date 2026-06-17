@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, MapPin, CheckCircle, XCircle, Clock, Package, User } from 'lucide-react';
-import moment from 'moment';
+import { format } from 'date-fns';
 
 const statusConfig = {
   completed: { label: 'Completed', color: 'text-green-600 bg-green-50', icon: CheckCircle },
@@ -73,7 +73,7 @@ export default function TripHistory() {
                     <StatusIcon className="w-3 h-3" />
                     {cfg.label}
                   </span>
-                  <span className="text-xs text-gray-400">{moment(trip.created_date).format('D MMM YYYY, h:mm A')}</span>
+                  <span className="text-xs text-gray-400">{format(new Date(trip.created_date), 'd MMM yyyy, h:mm a')}</span>
                 </div>
 
                 {/* Route */}
