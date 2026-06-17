@@ -1,12 +1,13 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Home, Clock, MapPin, User } from 'lucide-react';
+import { Home, Clock, MapPin, User, Wallet } from 'lucide-react';
 
 const tabs = [
   { path: '/passenger', icon: Home, label: 'Home' },
   { path: '/passenger/requests', icon: Clock, label: 'Requests' },
   { path: '/passenger/track', icon: MapPin, label: 'Track' },
+  { path: '/passenger/wallet', icon: Wallet, label: 'Wallet' },
   { path: '/passenger/profile', icon: User, label: 'Profile' },
 ];
 
