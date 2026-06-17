@@ -17,7 +17,8 @@ export default function DriverLayout() {
 
   useEffect(() => {
     base44.auth.me().then(u => {
-      if (u?.app_role === 'passenger') navigate('/passenger', { replace: true });
+      if (!u?.app_role) navigate('/', { replace: true });
+      else if (u?.app_role === 'passenger') navigate('/passenger', { replace: true });
     }).catch(() => navigate('/login', { replace: true }));
   }, []);
 

@@ -31,10 +31,15 @@ export default function DriverOffers() {
   const loadBids = () =>
     base44.entities.Bid.filter({ request_id: requestId, status: 'pending' }, 'price').then(async (b) => {
       setBids(b);
-      // Fetch driver profiles for vehicle details
-      const allUsers = await base44.entities.User.list();
+      // Fetch driver profiles by email (User.list requires admin; filter by email instead)
+      const emails = [...new Set(b.map(bid => bid.driver_id))];
       const profileMap = {};
-      allUsers.forEach(u => { profileMap[u.email] = u; });
+      await Promise.all(emails.map(async (email) => {
+        try {
+          const users = await base44.entities.User.filter({ email });
+          if (users.length > 0) profileMap[email] = users[0];
+        } catch {}
+      }));
       setDriverProfiles(profileMap);
     });
 

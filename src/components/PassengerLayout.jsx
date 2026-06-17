@@ -17,7 +17,8 @@ export default function PassengerLayout() {
 
   useEffect(() => {
     base44.auth.me().then(u => {
-      if (u?.app_role === 'driver') navigate('/driver', { replace: true });
+      if (!u?.app_role) navigate('/', { replace: true });
+      else if (u?.app_role === 'driver') navigate('/driver', { replace: true });
     }).catch(() => navigate('/login', { replace: true }));
   }, []);
 

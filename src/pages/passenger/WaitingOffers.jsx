@@ -113,6 +113,10 @@ export default function WaitingOffers() {
           hasExpired = true;
           setExpired(true);
           base44.entities.RideRequest.update(requestId, { status: 'cancelled' });
+          // Cancel all pending bids on this request so drivers aren't left waiting
+          base44.entities.Bid.filter({ request_id: requestId, status: 'pending' }).then(pendingBids => {
+            pendingBids.forEach(b => base44.entities.Bid.update(b.id, { status: 'cancelled' }));
+          });
           clearInterval(timer);
         }
       };
