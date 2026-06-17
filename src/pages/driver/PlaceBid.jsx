@@ -39,6 +39,8 @@ export default function PlaceBid() {
   const [existingBid, setExistingBid] = useState(null);
   const [competitorCount, setCompetitorCount] = useState(0);
   const [showPricePicker, setShowPricePicker] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(null);
+  const [walletInsufficient, setWalletInsufficient] = useState(false);
 
   useEffect(() => {
     base44.entities.RideRequest.get(requestId).then(setRequest);
