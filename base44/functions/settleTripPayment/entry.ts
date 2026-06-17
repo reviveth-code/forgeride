@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     // Store convenience fee on trip for record
     await base44.asServiceRole.entities.Trip.update(trip_id, { convenience_fee: convenienceFee });
 
-    // Cash trips — no wallet movement, just record for bookkeeping
+    // Cash trips — settle through driver's wallet since they collected the cash
     if (payment_method === 'cash') {
       // Record passenger cash payment (fare + convenience fee paid to driver)
       await base44.asServiceRole.entities.Transaction.create({
@@ -43,19 +43,36 @@ Deno.serve(async (req) => {
         amount: totalPassengerCost,
         status: 'success',
         reference: `TRIP-CASH-${trip_id}`,
-        description: `Cash payment to ${driver_name} (incl. ₦${convenienceFee} convenience)`,
+        description: `Cash payment to ${driver_name} (fare ₦${agreed_price} + ₦${convenienceFee} fee)`,
         metadata: { trip_id, driver_id, agreed_price, convenience_fee: convenienceFee, payment_method: 'cash' },
       });
 
-      // Record driver cash earning (fare only — driver collected convenience fee on Forge's behalf)
+      // Credit driver wallet with full collected amount, then debit Forge's cut
+      const driverWallets = await base44.asServiceRole.entities.Wallet.filter({ user_id: driver_id });
+      let driverWallet;
+      if (driverWallets.length > 0) {
+        driverWallet = driverWallets[0];
+        // Credit full collection (fare + convenience fee), debit Forge cut = net driverEarning
+        await base44.asServiceRole.entities.Wallet.update(driverWallet.id, {
+          balance: (driverWallet.balance || 0) + totalPassengerCost - totalForgeCut,
+        });
+      } else {
+        driverWallet = await base44.asServiceRole.entities.Wallet.create({
+          user_id: driver_id,
+          balance: totalPassengerCost - totalForgeCut,
+          currency: 'NGN',
+        });
+      }
+
+      // Record driver earning (net after Forge cut)
       await base44.asServiceRole.entities.Transaction.create({
-        wallet_id: 'cash',
+        wallet_id: driverWallet.id,
         user_id: driver_id,
         type: 'earning',
         amount: driverEarning,
         status: 'success',
         reference: `TRIP-CASH-EARN-${trip_id}`,
-        description: `Cash fare from ${passenger_name} (₦${forgeCommission} commission + ₦${convenienceFee} convenience owed to Forge)`,
+        description: `Cash fare from ${passenger_name} (₦${totalForgeCut} to Forge: ₦${forgeCommission} comm + ₦${convenienceFee} fee)`,
         metadata: { trip_id, passenger_id, forge_commission: forgeCommission, convenience_fee: convenienceFee, gross_fare: agreed_price, payment_method: 'cash' },
       });
 
@@ -63,7 +80,7 @@ Deno.serve(async (req) => {
         success: true,
         payment_method: 'cash',
         passenger_paid_cash: totalPassengerCost,
-        driver_earned_cash: driverEarning,
+        driver_credited_net: driverEarning,
         convenience_fee: convenienceFee,
         forge_commission: forgeCommission,
         total_forge_cut: totalForgeCut,
