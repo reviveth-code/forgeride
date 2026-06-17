@@ -28,18 +28,23 @@ Whether you need a quick ride across town or want to send a package to someone a
 
 🚗 FOR PASSENGERS
 • Post a ride or delivery request in seconds
-• Get competitive offers from nearby drivers
+• Get competitive offers from nearby drivers within 25 km
 • Choose your driver based on price, rating & vehicle type
-• Track your driver live on the map
+• Track your driver live on an interactive full-screen map
 • Book for yourself or someone else
-• Safe, cashless-friendly experience
+• Pay with Wallet or Cash — transparent 10% convenience fee upfront
+• Start with ₦50,000 welcome wallet balance
+• Rate your driver after every trip
 
 🏍️ FOR DRIVERS
-• See nearby ride and delivery requests in real time
+• See nearby ride and delivery requests in real time with audio alerts
 • Place competitive bids and set your own price
 • Manage your online status and availability
 • Track your daily earnings and trip history
 • Build your rating and grow your reputation
+• In-app wallet with Paystack withdrawals to your bank account
+• ₦50,000 starting wallet balance for all new drivers
+• "Keep phone on" safety banner + SOS button during trips
 
 📦 GOODS DELIVERY
 • Send packages across town with trusted drivers
@@ -47,10 +52,12 @@ Whether you need a quick ride across town or want to send a package to someone a
 • Track your delivery in real time
 
 🔒 SAFE & SECURE
-• Verified driver profiles
+• Verified driver profiles with vehicle details
 • Real-time trip tracking for every journey
 • Review and rating system for accountability
-• Transparent pricing — no hidden charges
+• Transparent pricing — 10% convenience fee shown before booking
+• Wallet payments with transaction history
+• SOS emergency call button for drivers
 
 📍 CURRENTLY SERVING NIGERIA
 ForgeRide is growing fast. More cities coming soon.

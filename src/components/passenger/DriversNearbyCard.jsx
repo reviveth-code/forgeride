@@ -13,7 +13,7 @@ const VEHICLE_EMOJI = {
   van: '🚐',
 };
 
-const RADIUS_KM = 10;
+const RADIUS_KM = 25;
 const POLL_INTERVAL_MS = 30000; // 30 seconds
 
 function makeDriverIcon(emoji) {
@@ -67,7 +67,7 @@ function MapBoundsFitter({ drivers, userLat, userLng }) {
     if (points.length === 1) {
       map.setView(points[0], 15, { animate: true });
     } else {
-      map.fitBounds(L.latLngBounds(points), { padding: [28, 28], maxZoom: 15, animate: true });
+      map.fitBounds(L.latLngBounds(points), { padding: [28, 28], maxZoom: 12, animate: true });
     }
   }, [JSON.stringify(drivers.map(d => [d.current_lat, d.current_lng])), userLat, userLng]);
 
@@ -167,10 +167,10 @@ export default function DriversNearbyCard({ userLat, userLng }) {
           style={{ height: '100%', width: '100%' }}
           zoomControl={false}
           attributionControl={false}
-          dragging={false}
-          scrollWheelZoom={false}
+          dragging={true}
+          scrollWheelZoom={true}
           doubleClickZoom={false}
-          touchZoom={false}
+          touchZoom={true}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <MapBoundsFitter drivers={drivers} userLat={userLat} userLng={userLng} />
