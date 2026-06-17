@@ -90,6 +90,13 @@ export default function PlaceBid() {
     return () => clearInterval(t);
   }, [request]);
 
+  // Recalculate wallet guard when price changes
+  useEffect(() => {
+    if (walletBalance !== null) {
+      setWalletInsufficient(walletBalance < Math.round(price * FORGE_COMMISSION_RATE));
+    }
+  }, [price, walletBalance]);
+
   const distFromPickup = haversine(driverPos?.lat, driverPos?.lng, request?.pickup_lat, request?.pickup_lng);
   const etaMin = distFromPickup ? Math.max(1, Math.round(distFromPickup * 3)) : 4;
   const isExpired = secsLeft === 0;
@@ -189,6 +196,19 @@ export default function PlaceBid() {
           </div>
         )}
 
+        {/* Wallet balance warning */}
+        {walletBalance !== null && walletInsufficient && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-red-700">Insufficient wallet balance</p>
+              <p className="text-xs text-red-600 mt-0.5">
+                Your wallet (₦{walletBalance.toLocaleString()}) can't cover the ₦{Math.round(price * FORGE_COMMISSION_RATE).toLocaleString()} commission on this ₦{price.toLocaleString()} bid.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Price */}
         <div className="bg-white rounded-2xl p-5 shadow-sm">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Your Price Offer</p>
@@ -222,7 +242,7 @@ export default function PlaceBid() {
           <p className="text-right text-xs text-gray-300 mt-1">{message.length}/120</p>
         </div>
 
-        <button onClick={handleSubmit} disabled={loading || !request || isExpired || !!existingBid}
+        <button onClick={handleSubmit} disabled={loading || !request || isExpired || !!existingBid || walletInsufficient}
           className="w-full bg-forge-orange text-white font-extrabold py-4 rounded-2xl text-base disabled:opacity-60 flex items-center justify-center shadow-lg">
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : `✓ Submit Bid — ₦${price.toLocaleString()}`}
         </button>
