@@ -39,6 +39,15 @@
       "type": "string",
       "title": "Recipient Phone"
     },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "wallet",
+        "cash"
+      ],
+      "default": "wallet",
+      "title": "Payment Method"
+    },
     "status": {
       "type": "string",
       "enum": [

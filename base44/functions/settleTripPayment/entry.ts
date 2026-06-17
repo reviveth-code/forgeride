@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     if (!trip) return Response.json({ error: 'Trip not found' }, { status: 404 });
     if (trip.status !== 'completed') return Response.json({ error: 'Trip not completed' }, { status: 400 });
 
-    const { agreed_price, passenger_id, driver_id, passenger_name, driver_name } = trip;
+    const { agreed_price, passenger_id, driver_id, passenger_name, driver_name, payment_method } = trip;
     if (!agreed_price || !passenger_id || !driver_id) {
       return Response.json({ error: 'Trip missing required fields' }, { status: 400 });
     }
@@ -26,6 +26,42 @@ Deno.serve(async (req) => {
     const forgeFee = Math.round(agreed_price * FORGE_COMMISSION_RATE);
     const driverEarning = agreed_price - forgeFee;
 
+    // Cash trips — no wallet movement, just record for bookkeeping
+    if (payment_method === 'cash') {
+      // Record passenger cash payment
+      await base44.asServiceRole.entities.Transaction.create({
+        wallet_id: 'cash',
+        user_id: passenger_id,
+        type: 'payment',
+        amount: agreed_price,
+        status: 'success',
+        reference: `TRIP-CASH-${trip_id}`,
+        description: `Cash payment to ${driver_name}`,
+        metadata: { trip_id, driver_id, forge_fee: forgeFee, payment_method: 'cash' },
+      });
+
+      // Record driver cash earning
+      await base44.asServiceRole.entities.Transaction.create({
+        wallet_id: 'cash',
+        user_id: driver_id,
+        type: 'earning',
+        amount: driverEarning,
+        status: 'success',
+        reference: `TRIP-CASH-EARN-${trip_id}`,
+        description: `Cash fare from ${passenger_name} (₦${forgeFee} Forge fee)`,
+        metadata: { trip_id, passenger_id, forge_fee: forgeFee, gross_fare: agreed_price, payment_method: 'cash' },
+      });
+
+      return Response.json({
+        success: true,
+        payment_method: 'cash',
+        passenger_paid: agreed_price,
+        driver_earned_cash: driverEarning,
+        forge_fee: forgeFee,
+      });
+    }
+
+    // Wallet trips — full settlement
     // 1. Deduct from passenger wallet
     const passengerWallets = await base44.asServiceRole.entities.Wallet.filter({ user_id: passenger_id });
     let passengerWallet;
@@ -51,7 +87,7 @@ Deno.serve(async (req) => {
       status: 'success',
       reference: `TRIP-PAY-${trip_id}`,
       description: `Ride payment to ${driver_name}`,
-      metadata: { trip_id, driver_id, forge_fee: forgeFee },
+      metadata: { trip_id, driver_id, forge_fee: forgeFee, payment_method: 'wallet' },
     });
 
     // 2. Credit driver wallet (minus Forge commission)
@@ -79,11 +115,12 @@ Deno.serve(async (req) => {
       status: 'success',
       reference: `TRIP-EARN-${trip_id}`,
       description: `Trip fare from ${passenger_name} (₦${forgeFee} Forge fee)`,
-      metadata: { trip_id, passenger_id, forge_fee: forgeFee, gross_fare: agreed_price },
+      metadata: { trip_id, passenger_id, forge_fee: forgeFee, gross_fare: agreed_price, payment_method: 'wallet' },
     });
 
     return Response.json({
       success: true,
+      payment_method: 'wallet',
       passenger_debited: agreed_price,
       driver_credited: driverEarning,
       forge_fee: forgeFee,

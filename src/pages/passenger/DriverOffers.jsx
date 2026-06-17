@@ -74,6 +74,7 @@ export default function DriverOffers() {
       dropoff_lat: request.dropoff_lat,
       dropoff_lng: request.dropoff_lng,
       request_type: request.request_type,
+      payment_method: request.payment_method || 'wallet',
       distance_km: request.estimated_distance_km,
       duration_min: request.estimated_duration_min,
     });

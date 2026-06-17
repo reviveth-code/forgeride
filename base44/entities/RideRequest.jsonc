@@ -34,6 +34,15 @@
       ],
       "title": "Request Type"
     },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "wallet",
+        "cash"
+      ],
+      "default": "wallet",
+      "title": "Payment Method"
+    },
     "status": {
       "type": "string",
       "enum": [

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { X, User, Package, Loader2, Users, LocateFixed, Pencil } from 'lucide-react';
+import { X, User, Package, Loader2, Users, LocateFixed, Pencil, Wallet, Banknote } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import '@/utils/leaflet';
 import LocationSearchInput from '@/components/LocationSearchInput';
@@ -50,6 +50,7 @@ export default function NewRequest() {
   const [forSomeoneElse, setForSomeoneElse] = useState(false);
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('wallet');
 
   useEffect(() => { base44.auth.me().then(setUser); }, []);
 
@@ -102,6 +103,7 @@ export default function NewRequest() {
       dropoff_lng: dropoffLoc.lng,
       request_type: type,
       notes,
+      payment_method: paymentMethod,
       status: 'open',
       estimated_distance_km: distanceKm,
       estimated_duration_min: durationMin,
@@ -245,6 +247,24 @@ export default function NewRequest() {
             <p className="text-xs text-gray-400">The driver will see this person's name and can call them directly.</p>
           </div>
         )}
+
+        {/* Payment Method */}
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest pt-1">Payment Method</p>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { key: 'wallet', icon: Wallet, label: 'Wallet', sub: 'Pay from balance' },
+            { key: 'cash', icon: Banknote, label: 'Cash', sub: 'Pay driver directly' },
+          ].map(({ key, icon: Icon, label, sub }) => (
+            <button key={key} type="button" onClick={() => setPaymentMethod(key)}
+              className={`flex flex-col items-center gap-1.5 py-4 rounded-2xl border-2 font-bold text-sm transition-colors ${
+                paymentMethod === key ? 'bg-forge-orange border-forge-orange text-white' : 'border-gray-200 text-gray-600'
+              }`}>
+              <Icon className="w-5 h-5" />
+              <span>{label}</span>
+              <span className={`text-[10px] font-normal ${paymentMethod === key ? 'text-white/70' : 'text-gray-400'}`}>{sub}</span>
+            </button>
+          ))}
+        </div>
 
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest pt-1">Notes — Optional</p>
         <textarea placeholder="Any special instructions for the driver" value={notes} onChange={(e) => setNotes(e.target.value)}
