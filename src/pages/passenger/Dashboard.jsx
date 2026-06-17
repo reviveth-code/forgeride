@@ -23,27 +23,27 @@ export default function PassengerDashboard() {
   const { address: currentAddress, coords, loading: locationLoading } = useCurrentLocation();
 
   useEffect(() => {
-    let userEmail = null;
+    let userId = null;
     base44.auth.me().then(u => {
       setUser(u);
-      userEmail = u?.email;
-      loadRequests(u?.email);
+      userId = u?.id;
+      loadRequests(u?.id);
     }).catch(() => navigate('/login'));
 
-    const unsub = base44.entities.RideRequest.subscribe(() => loadRequests(userEmail));
+    const unsub = base44.entities.RideRequest.subscribe(() => loadRequests(userId));
     return unsub;
   }, []);
 
-  const loadRequests = (email) => {
-    if (!email) return;
-    base44.entities.RideRequest.filter({ created_by: email }, '-created_date', 20)
+  const loadRequests = (userId) => {
+    if (!userId) return;
+    base44.entities.RideRequest.filter({ created_by_id: userId }, '-created_date', 20)
       .then(all => setRequests(all.filter(r => ['open', 'matched', 'active'].includes(r.status))));
   };
 
   const handleRefresh = async () => {
     const u = await base44.auth.me();
     setUser(u);
-    loadRequests(u?.email);
+    loadRequests(u?.id);
   };
 
   const greeting = () => {

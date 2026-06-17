@@ -18,7 +18,7 @@ export default function PassengerRequests() {
 
   const load = async () => {
     const u = await base44.auth.me();
-    const data = await base44.entities.RideRequest.filter({ created_by: u.email }, '-created_date', 30);
+    const data = await base44.entities.RideRequest.filter({ created_by_id: u.id }, '-created_date', 30);
     setRequests(data);
   };
 

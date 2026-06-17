@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Clock } from 'lucide-react';
@@ -13,6 +13,7 @@ export default function BidSubmitted() {
   const [passengerViewing, setPassengerViewing] = useState(false);
   const [secsLeft, setSecsLeft] = useState(180);
   const [expired, setExpired] = useState(false);
+  const countdownTimerRef = useRef(null);
 
   const goToTrip = (attempts = 0) => {
     base44.entities.Trip.filter({ bid_id: bidId }).then(trips => {
@@ -38,12 +39,13 @@ export default function BidSubmitted() {
       // Countdown based on bid's own created_date — same logic as passenger side
       if (bid?.created_date) {
         let hasExpired = false;
+        let timer;
         const raw = bid.created_date;
         const dateStr = typeof raw === 'string' && !raw.endsWith('Z') ? raw + 'Z' : raw;
         const getRemaining = () => Math.max(0, Math.floor((BID_TTL_MS - (Date.now() - new Date(dateStr).getTime())) / 1000));
         // Set immediately so driver and passenger start from the same value
         setSecsLeft(getRemaining());
-        const timer = setInterval(() => {
+        timer = setInterval(() => {
           const remaining = getRemaining();
           setSecsLeft(remaining);
           if (remaining === 0 && !hasExpired) {
@@ -53,7 +55,7 @@ export default function BidSubmitted() {
             base44.entities.Bid.update(bidId, { status: 'cancelled' });
           }
         }, 1000);
-        return () => clearInterval(timer);
+        countdownTimerRef.current = timer;
       }
     });
 
@@ -80,7 +82,7 @@ export default function BidSubmitted() {
       if (bid?.status === 'accepted') { clearInterval(poll); goToTrip(); }
     }, 4000);
 
-    return () => { unsub(); clearInterval(poll); clearInterval(viewPoll); };
+    return () => { unsub(); clearInterval(poll); clearInterval(viewPoll); clearInterval(countdownTimerRef.current); };
   }, [bidId]);
 
   const cancelBid = async () => {
@@ -165,7 +167,8 @@ export default function BidSubmitted() {
           className="w-full bg-white text-gray-900 font-extrabold py-4 rounded-2xl text-base">
           Back to Requests
         </button>
-        <button className="w-full border-2 border-white/30 text-white font-bold py-4 rounded-2xl text-base">
+        <button onClick={() => navigate(`/driver/bid/${bid?.request_id}`)}
+          className="w-full border-2 border-white/30 text-white font-bold py-4 rounded-2xl text-base">
           Edit My Bid
         </button>
         <button onClick={cancelBid} className="w-full text-center text-red-400 text-sm font-semibold">

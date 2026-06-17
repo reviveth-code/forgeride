@@ -158,7 +158,7 @@ export default function NearbyRequests() {
               </>
             ) : (
               <>
-                <p className="text-sm font-semibold text-foreground">No open requests within 10km</p>
+                <p className="text-sm font-semibold text-foreground">No open requests within 25km</p>
                 <p className="text-xs text-muted-foreground">Pull down to refresh or check back shortly.</p>
               </>
             )}

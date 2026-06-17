@@ -55,6 +55,7 @@ export default function ActiveTrip() {
   const [driverPos, setDriverPos] = useState(null);
   const [showEndWarning, setShowEndWarning] = useState(false);
   const [smoothDistKm, setSmoothDistKm] = useState(null);
+  const [passengerPhone, setPassengerPhone] = useState(null);
   const wakeLockRef = useRef(null);
   const tripRef = useRef(null);
 
@@ -123,7 +124,16 @@ export default function ActiveTrip() {
   }, [driverPos, trip?.status, trip?.pickup_lat, trip?.dropoff_lat]);
 
   useEffect(() => {
-    base44.entities.Trip.get(tripId).then(t => { setTrip(t); tripRef.current = t; });
+    base44.entities.Trip.get(tripId).then(async t => {
+      setTrip(t);
+      tripRef.current = t;
+      // Fetch passenger phone for call button
+      if (t?.passenger_id) {
+        const users = await base44.entities.User.list();
+        const p = users.find(u => u.email === t.passenger_id);
+        if (p?.phone) setPassengerPhone(p.phone);
+      }
+    });
     const watchId = navigator.geolocation?.watchPosition(
       ({ coords }) => {
         const pos = [coords.latitude, coords.longitude];
@@ -182,9 +192,15 @@ export default function ActiveTrip() {
             {trip?.status === 'in_progress' ? 'Trip In Progress' : trip?.status === 'awaiting_passenger_confirm' ? 'Awaiting Confirm' : 'Arriving at Pickup'}
           </span>
         </div>
-        <button className="w-11 h-11 bg-forge-orange rounded-full shadow-lg flex items-center justify-center">
-          <Phone className="w-5 h-5 text-white" />
-        </button>
+        {passengerPhone ? (
+          <a href={`tel:${passengerPhone}`} className="w-11 h-11 bg-forge-orange rounded-full shadow-lg flex items-center justify-center">
+            <Phone className="w-5 h-5 text-white" />
+          </a>
+        ) : (
+          <button className="w-11 h-11 bg-forge-orange/60 rounded-full shadow-lg flex items-center justify-center">
+            <Phone className="w-5 h-5 text-white" />
+          </button>
+        )}
       </div>
 
       {/* Phone-on warning banner */}
@@ -195,7 +211,7 @@ export default function ActiveTrip() {
         </div>
       </div>
 
-      {/* Navigation banner */}
+      {/* Phone banner */}
       <div className="absolute top-28 left-4 right-4 z-10">
         <div className="bg-forge-navy/95 rounded-2xl px-4 py-2.5 flex items-center justify-between shadow-xl">
           <div className="flex items-center gap-2">
@@ -211,7 +227,7 @@ export default function ActiveTrip() {
       </div>
 
       {/* Map */}
-      <div className="flex-1" style={{ minHeight: '58vh' }}>
+      <div className="flex-1 relative" style={{ minHeight: '58vh' }}>
         <MapContainer
           center={driverPos || pickupPos || [6.5244, 3.3792]}
           zoom={14}
@@ -299,8 +315,11 @@ export default function ActiveTrip() {
               </div>
             )}
             <div className="flex gap-3">
-              <button className="flex-1 border-2 border-red-400 text-red-400 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm">
-                <AlertTriangle className="w-4 h-4" /> SOS
+              <button
+                onClick={() => { if (passengerPhone) window.open(`tel:${passengerPhone}`); else alert('Passenger phone unavailable'); }}
+                className="flex-1 border-2 border-red-400 text-red-400 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm"
+              >
+                <AlertTriangle className="w-4 h-4" /> SOS — Call Passenger
               </button>
               <button onClick={endTrip} disabled={loading || trip?.status !== 'in_progress'}
                 className={`flex-1 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm ${trip?.status === 'in_progress' ? 'bg-forge-navy text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}

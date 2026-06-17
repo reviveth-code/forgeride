@@ -106,8 +106,9 @@ export default function DriverDashboard() {
           <Link to="/driver/wallet" className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
             <Wallet className="w-5 h-5 text-gray-600" />
           </Link>
-          <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+          <button onClick={() => loadRequests()} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center relative">
             <Bell className="w-5 h-5 text-gray-600" />
+            {requests.length > 0 && <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-forge-orange rounded-full" />}
           </button>
         </div>
 
