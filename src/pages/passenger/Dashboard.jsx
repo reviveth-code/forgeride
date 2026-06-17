@@ -19,6 +19,7 @@ export default function PassengerDashboard() {
   const [user, setUser] = useState(null);
   const [requests, setRequests] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(null);
   const navigate = useNavigate();
   const { address: currentAddress, coords, loading: locationLoading } = useCurrentLocation();
 
@@ -28,6 +29,11 @@ export default function PassengerDashboard() {
       setUser(u);
       userId = u?.id;
       loadRequests(u?.id);
+      if (u?.email) {
+        base44.entities.Wallet.filter({ user_id: u.email }).then(wallets => {
+          setWalletBalance(wallets.length > 0 ? wallets[0].balance : 0);
+        });
+      }
     }).catch(() => navigate('/login'));
 
     const unsub = base44.entities.RideRequest.subscribe(() => loadRequests(userId));
@@ -44,6 +50,10 @@ export default function PassengerDashboard() {
     const u = await base44.auth.me();
     setUser(u);
     loadRequests(u?.id);
+    if (u?.email) {
+      const wallets = await base44.entities.Wallet.filter({ user_id: u.email });
+      setWalletBalance(wallets.length > 0 ? wallets[0].balance : 0);
+    }
   };
 
   const greeting = () => {
@@ -63,8 +73,11 @@ export default function PassengerDashboard() {
             <h1 className="text-2xl font-extrabold text-gray-900">{(user?.display_name || user?.full_name || 'User').split(' ')[0]}</h1>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/passenger/wallet" className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-gray-600" />
+            <Link to="/passenger/wallet" className="flex items-center gap-1.5 bg-gray-100 rounded-full pl-2 pr-3 py-1.5">
+              <Wallet className="w-4 h-4 text-gray-600" />
+              <span className="text-xs font-bold text-gray-700">
+                {walletBalance != null ? `₦${walletBalance.toLocaleString()}` : '···'}
+              </span>
             </Link>
             <button onClick={() => setNotifOpen(true)} className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
               <Bell className="w-5 h-5 text-gray-600" />

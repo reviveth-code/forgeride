@@ -26,6 +26,7 @@ export default function DriverDashboard() {
   const [requests, setRequests] = useState([]);
   const [trips, setTrips] = useState([]);
   const [avgRating, setAvgRating] = useState(null);
+  const [walletBalance, setWalletBalance] = useState(null);
   const navigate = useNavigate();
   const { address: currentAddress, loading: locationLoading } = useCurrentLocation();
 
@@ -53,6 +54,11 @@ export default function DriverDashboard() {
           setAvgRating(avg);
         }
       });
+      if (u?.email) {
+        base44.entities.Wallet.filter({ user_id: u.email }).then(wallets => {
+          setWalletBalance(wallets.length > 0 ? wallets[0].balance : 0);
+        });
+      }
     }).catch(() => navigate('/login'));
     loadRequests();
     const unsub = base44.entities.RideRequest.subscribe(() => loadRequests());
@@ -103,8 +109,11 @@ export default function DriverDashboard() {
               <h1 className="text-xl font-extrabold text-foreground">{user?.display_name || user?.full_name || 'Driver'} 🔥</h1>
             </div>
           </div>
-          <Link to="/driver/wallet" className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-            <Wallet className="w-5 h-5 text-gray-600" />
+          <Link to="/driver/wallet" className="flex items-center gap-1.5 bg-gray-100 rounded-full pl-2 pr-3 py-1.5">
+            <Wallet className="w-4 h-4 text-gray-600" />
+            <span className="text-xs font-bold text-gray-700">
+              {walletBalance != null ? `₦${walletBalance.toLocaleString()}` : '···'}
+            </span>
           </Link>
           <button onClick={() => loadRequests()} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center relative">
             <Bell className="w-5 h-5 text-gray-600" />

@@ -13,7 +13,7 @@ export default function PrivacyPolicy() {
 
       <p className="text-sm text-gray-500 mb-8">
         <strong>Effective Date:</strong> June 9, 2025 &nbsp;·&nbsp;
-        <strong>Last Updated:</strong> June 9, 2026
+        <strong>Last Updated:</strong> June 17, 2026
       </p>
 
       <div className="space-y-8 text-sm text-gray-700 leading-relaxed">
@@ -36,8 +36,9 @@ export default function PrivacyPolicy() {
           <ul className="list-disc pl-5 space-y-1">
             <li><strong>Account Information:</strong> Full name, email address, phone number, and role (passenger or driver).</li>
             <li><strong>Location Data:</strong> Real-time GPS coordinates while the app is in use, to match passengers with nearby drivers and track active trips.</li>
-            <li><strong>Trip Data:</strong> Pickup/drop-off addresses, trip distance, duration, and agreed fares.</li>
-            <li><strong>Driver Information:</strong> Vehicle type, driver rating, and online/offline status.</li>
+            <li><strong>Trip Data:</strong> Pickup/drop-off addresses, trip distance, duration, agreed fares, and payment method.</li>
+            <li><strong>Driver Information:</strong> Vehicle type, vehicle details (plate, model, colour), driver rating, and online/offline status.</li>
+            <li><strong>Wallet and Payment Data:</strong> Wallet balances, transaction history, funding and withdrawal records processed via Paystack.</li>
             <li><strong>Communications:</strong> Notes or messages sent between passengers and drivers within the platform.</li>
             <li><strong>Device Information:</strong> Device type and operating system, used for app performance and security.</li>
           </ul>
@@ -49,10 +50,11 @@ export default function PrivacyPolicy() {
             <li>To match passengers with available drivers in real time.</li>
             <li>To facilitate and track ongoing trips.</li>
             <li>To calculate estimated distances and trip durations.</li>
+            <li>To process wallet transactions, payments, and earnings settlements.</li>
             <li>To enable driver-passenger communication within the app.</li>
             <li>To improve app performance and user experience.</li>
             <li>To resolve disputes and ensure platform safety.</li>
-            <li>To send important service notifications (e.g., trip status updates via SMS).</li>
+            <li>To send important service notifications (e.g., trip status updates).</li>
           </ul>
         </section>
 
@@ -76,8 +78,8 @@ export default function PrivacyPolicy() {
           <h2 className="text-base font-bold text-forge-navy mb-2">5. Sharing of Information</h2>
           <p>We do <strong>not</strong> sell your personal data. We may share limited information:</p>
           <ul className="list-disc pl-5 mt-2 space-y-1">
-            <li><strong>Between passengers and drivers:</strong> Name and trip details are shared to facilitate a booking.</li>
-            <li><strong>SMS providers (Africa's Talking):</strong> Phone numbers are used solely to deliver OTP verification codes.</li>
+            <li><strong>Between passengers and drivers:</strong> Name, phone number, and trip details are shared to facilitate a booking.</li>
+            <li><strong>Payment processors (Paystack):</strong> Wallet funding and withdrawal transactions are processed securely through Paystack.</li>
             <li><strong>Legal requirements:</strong> If required by Nigerian law or a court order.</li>
           </ul>
         </section>
