@@ -64,6 +64,11 @@
       "type": "number",
       "title": "Agreed Price (\u20a6)"
     },
+    "convenience_fee": {
+      "type": "number",
+      "title": "Convenience Fee (\u20a6)",
+      "default": 0
+    },
     "request_type": {
       "type": "string",
       "enum": [

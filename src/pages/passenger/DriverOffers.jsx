@@ -124,7 +124,8 @@ export default function DriverOffers() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-forge-orange font-extrabold text-2xl">₦{bid.price?.toLocaleString()}</p>
-            <div className="flex gap-3 text-xs text-gray-400 mt-0.5">
+            <p className="text-[10px] text-gray-400 mt-0.5">+₦{Math.round(bid.price * 0.1).toLocaleString()} convenience fee</p>
+            <div className="flex gap-3 text-xs text-gray-400 mt-1">
               <span>~{bid.eta_min || 4} min</span>
               <span>~{bid.distance_from_pickup_km || 1} km away</span>
             </div>
