@@ -70,5 +70,34 @@
     "request_id",
     "driver_id",
     "price"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "data.driver_id": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.driver_id": "{{user.email}}"
+        },
+        {
+          "data.request_id": {
+            "$in": {
+              "_entity": "RideRequest",
+              "_query": {
+                "created_by_id": "{{user.id}}"
+              },
+              "_select": "id"
+            }
+          }
+        }
+      ]
+    },
+    "update": {
+      "data.driver_id": "{{user.email}}"
+    },
+    "delete": {
+      "data.driver_id": "{{user.email}}"
+    }
+  }
 }

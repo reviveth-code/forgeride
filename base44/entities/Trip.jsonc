@@ -122,5 +122,37 @@
     "request_id",
     "driver_id",
     "agreed_price"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.passenger_id": "{{user.email}}"
+        },
+        {
+          "data.driver_id": "{{user.email}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.passenger_id": "{{user.email}}"
+        },
+        {
+          "data.driver_id": "{{user.email}}"
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
