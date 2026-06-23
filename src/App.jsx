@@ -8,37 +8,42 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { TabNavigationProvider } from '@/components/TabNavigationProvider';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-// Add page imports here
-import CustomerJourneyMap from './pages/CustomerJourneyMap';
-import Splash from './pages/Splash';
+import { lazy, Suspense } from 'react';
+import PageLoader from '@/components/PageLoader';
+
+// Layouts — direct imports (needed immediately for route structure)
 import PassengerLayout from './components/PassengerLayout';
 import DriverLayout from './components/DriverLayout';
-import PassengerDashboard from './pages/passenger/Dashboard';
-import NewRequest from './pages/passenger/NewRequest';
-import WaitingOffers from './pages/passenger/WaitingOffers';
-import DriverOffers from './pages/passenger/DriverOffers';
-import TripTracking from './pages/passenger/TripTracking';
-import PassengerTripComplete from './pages/passenger/TripComplete';
-import PassengerRequests from './pages/passenger/Requests';
-import PassengerTrack from './pages/passenger/Track';
-import PassengerProfile from './pages/passenger/Profile';
-import TripHistory from './pages/passenger/TripHistory';
-import PassengerWallet from './pages/passenger/Wallet';
-import DriverDashboard from './pages/driver/Dashboard';
-import NearbyRequests from './pages/driver/NearbyRequests';
-import PlaceBid from './pages/driver/PlaceBid';
-import BidSubmitted from './pages/driver/BidSubmitted';
-import ActiveTrip from './pages/driver/ActiveTrip';
-import DriverTripComplete from './pages/driver/TripComplete';
-import DriverHistory from './pages/driver/History';
-import DriverWallet from './pages/driver/Wallet';
-import DriverProfile from './pages/driver/Profile';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import PlayStoreAssets from './pages/PlayStoreAssets';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
+
+// Pages — lazy loaded for code splitting
+const CustomerJourneyMap = lazy(() => import('./pages/CustomerJourneyMap'));
+const Splash = lazy(() => import('./pages/Splash'));
+const PassengerDashboard = lazy(() => import('./pages/passenger/Dashboard'));
+const NewRequest = lazy(() => import('./pages/passenger/NewRequest'));
+const WaitingOffers = lazy(() => import('./pages/passenger/WaitingOffers'));
+const DriverOffers = lazy(() => import('./pages/passenger/DriverOffers'));
+const TripTracking = lazy(() => import('./pages/passenger/TripTracking'));
+const PassengerTripComplete = lazy(() => import('./pages/passenger/TripComplete'));
+const PassengerRequests = lazy(() => import('./pages/passenger/Requests'));
+const PassengerTrack = lazy(() => import('./pages/passenger/Track'));
+const PassengerProfile = lazy(() => import('./pages/passenger/Profile'));
+const TripHistory = lazy(() => import('./pages/passenger/TripHistory'));
+const PassengerWallet = lazy(() => import('./pages/passenger/Wallet'));
+const DriverDashboard = lazy(() => import('./pages/driver/Dashboard'));
+const NearbyRequests = lazy(() => import('./pages/driver/NearbyRequests'));
+const PlaceBid = lazy(() => import('./pages/driver/PlaceBid'));
+const BidSubmitted = lazy(() => import('./pages/driver/BidSubmitted'));
+const ActiveTrip = lazy(() => import('./pages/driver/ActiveTrip'));
+const DriverTripComplete = lazy(() => import('./pages/driver/TripComplete'));
+const DriverHistory = lazy(() => import('./pages/driver/History'));
+const DriverWallet = lazy(() => import('./pages/driver/Wallet'));
+const DriverProfile = lazy(() => import('./pages/driver/Profile'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const PlayStoreAssets = lazy(() => import('./pages/PlayStoreAssets'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -67,6 +72,7 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <AnimatePresence mode="wait">
+    <Suspense fallback={<PageLoader />}>
     <Routes location={location} key={location.pathname}>
       <Route path="/" element={<PageTransition><Splash /></PageTransition>} />
       <Route path="/journey-map" element={<PageTransition><CustomerJourneyMap /></PageTransition>} />
@@ -111,6 +117,7 @@ const AuthenticatedApp = () => {
 
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </Suspense>
     </AnimatePresence>
   );
 };

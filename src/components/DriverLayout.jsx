@@ -1,5 +1,6 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
+import PageLoader from '@/components/PageLoader';
 import { base44 } from '@/api/base44Client';
 import { useTabNavigation } from '@/components/TabNavigationProvider';
 import { Home, Briefcase, Clock, User, Wallet } from 'lucide-react';
@@ -35,7 +36,9 @@ export default function DriverLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-background max-w-md mx-auto relative">
       <div className="flex-1 overflow-auto pb-20">
-        <Outlet />
+        <Suspense fallback={<PageLoader fullScreen={false} />}>
+          <Outlet />
+        </Suspense>
       </div>
       <nav
         className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 max-w-md mx-auto"
