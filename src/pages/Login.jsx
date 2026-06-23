@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { isReviewerEmail } from '@/lib/reviewer-access';
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
@@ -16,6 +17,19 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
+      if (isReviewerEmail(email)) {
+        const res = await base44.functions.invoke('reviewerLogin', { email: email.trim(), password });
+        if (res.data?.access_token) {
+          base44.auth.setToken(res.data.access_token);
+          const user = await base44.auth.me();
+          if (!user.app_role) {
+            window.location.href = '/register';
+            return;
+          }
+          window.location.href = user.app_role === 'driver' ? '/driver' : '/passenger';
+          return;
+        }
+      }
       await base44.auth.loginViaEmailPassword(email.trim(), password);
       const user = await base44.auth.me();
       if (!user.app_role) {
@@ -23,8 +37,8 @@ export default function Login() {
         return;
       }
       window.location.href = user.app_role === 'driver' ? '/driver' : '/passenger';
-    } catch {
-      setError('Login failed. Check your credentials or sign up first.');
+    } catch (err) {
+      setError(err?.message || 'Login failed. Check your credentials or sign up first.');
     } finally {
       setLoading(false);
     }
