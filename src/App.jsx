@@ -6,6 +6,7 @@ import { AnimatePresence } from 'framer-motion';
 import PageTransition from '@/components/PageTransition';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { TabNavigationProvider } from '@/components/TabNavigationProvider';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import CustomerJourneyMap from './pages/CustomerJourneyMap';
@@ -121,7 +122,9 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <AuthenticatedApp />
+          <TabNavigationProvider>
+            <AuthenticatedApp />
+          </TabNavigationProvider>
         </Router>
         <Toaster />
       </QueryClientProvider>

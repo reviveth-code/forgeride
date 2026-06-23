@@ -121,7 +121,7 @@ export default function DriverOffers() {
               <span>~{bid.distance_from_pickup_km || 1} km away</span>
             </div>
           </div>
-          <button onClick={() => !expired && selectDriver(bid)} disabled={!!selecting || expired}
+          <button onClick={() => !expired && selectDriver(bid)} disabled={!!selecting || expired} aria-label={`Select ${bid.driver_name} for ₦${bid.price?.toLocaleString()}`}
             className="bg-forge-orange text-white text-sm font-bold px-5 py-3 rounded-2xl flex items-center gap-2 disabled:opacity-60">
             {selecting === bid.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Select Driver'}
           </button>
@@ -137,7 +137,7 @@ export default function DriverOffers() {
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto">
       <div className="flex items-center gap-4 px-5 py-4 bg-card border-b border-border">
-        <button onClick={() => navigate(-1)}><ArrowLeft className="w-6 h-6 text-foreground" /></button>
+        <button onClick={() => navigate(-1)} aria-label="Go back"><ArrowLeft className="w-6 h-6 text-foreground" aria-hidden="true" /></button>
         <h1 className="text-lg font-bold text-foreground">Driver Offers</h1>
       </div>
 

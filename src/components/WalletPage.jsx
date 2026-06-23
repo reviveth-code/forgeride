@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Wallet, ArrowUpRight, ArrowDownLeft, Clock, Loader2, X, Banknote, RefreshCw, ChevronLeft, Send, Building2 } from 'lucide-react';
+import BottomSheetPicker from '@/components/BottomSheetPicker';
 
 const NIGERIAN_BANKS = [
   { name: 'Access Bank', code: '044' },
@@ -40,6 +41,7 @@ export default function WalletPage({ onBack, canWithdraw }) {
   const [withdrawError, setWithdrawError] = useState('');
   const [withdrawSuccess, setWithdrawSuccess] = useState('');
   const [error, setError] = useState('');
+  const [showBankPicker, setShowBankPicker] = useState(false);
 
   const loadWallet = async () => {
     const user = await base44.auth.me();
@@ -157,8 +159,8 @@ export default function WalletPage({ onBack, canWithdraw }) {
       <div className="bg-forge-navy pb-8" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
         <div className="flex items-center gap-3 px-5 mb-6">
           {onBack && (
-            <button onClick={onBack} className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center">
-              <ChevronLeft className="w-5 h-5 text-white" />
+            <button onClick={onBack} aria-label="Go back" className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center">
+              <ChevronLeft className="w-5 h-5 text-white" aria-hidden="true" />
             </button>
           )}
           <h1 className="text-xl font-bold text-white">My Wallet</h1>
@@ -271,11 +273,11 @@ export default function WalletPage({ onBack, canWithdraw }) {
       {/* Withdraw Modal */}
       {showWithdraw && (
         <div className="fixed inset-0 bg-black/40 z-[210] flex flex-col justify-end" onClick={(e) => { if (e.target === e.currentTarget) setShowWithdraw(false); }}>
-          <div className="bg-card rounded-t-3xl w-full max-w-md mx-auto p-6">
+          <div className="bg-card rounded-t-3xl w-full max-w-md mx-auto p-6" role="dialog" aria-modal="true" aria-label="Withdraw to bank">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-extrabold text-foreground">Withdraw to Bank</h2>
-              <button onClick={() => setShowWithdraw(false)} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                <X className="w-4 h-4 text-gray-500" />
+              <button onClick={() => setShowWithdraw(false)} aria-label="Close withdraw dialog" className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                <X className="w-4 h-4 text-gray-500" aria-hidden="true" />
               </button>
             </div>
 
@@ -310,17 +312,19 @@ export default function WalletPage({ onBack, canWithdraw }) {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Bank</label>
-                <select
-                  value={bankCode}
-                  onChange={(e) => { setBankCode(e.target.value); setWithdrawError(''); }}
-                  className="w-full px-4 py-4 border border-gray-200 rounded-2xl text-sm font-bold focus:outline-none focus:border-forge-orange bg-card"
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2" htmlFor="bank-select">Bank</label>
+                <button
+                  type="button"
+                  id="bank-select"
+                  onClick={() => setShowBankPicker(true)}
+                  aria-haspopup="dialog"
+                  className="w-full px-4 py-4 border border-gray-200 rounded-2xl text-sm font-bold focus:outline-none focus:border-forge-orange bg-card text-left flex items-center justify-between"
                 >
-                  <option value="">Select your bank</option>
-                  {NIGERIAN_BANKS.map((b) => (
-                    <option key={b.code} value={b.code}>{b.name}</option>
-                  ))}
-                </select>
+                  <span className={bankCode ? 'text-foreground' : 'text-gray-400'}>
+                    {bankCode ? NIGERIAN_BANKS.find(b => b.code === bankCode)?.name : 'Select your bank'}
+                  </span>
+                  <Building2 className="w-4 h-4 text-gray-400" aria-hidden="true" />
+                </button>
               </div>
 
               {/* Quick amounts */}
@@ -362,11 +366,11 @@ export default function WalletPage({ onBack, canWithdraw }) {
       {/* Fund Modal */}
       {showFund && (
         <div className="fixed inset-0 bg-black/40 z-[200] flex flex-col justify-end" onClick={(e) => { if (e.target === e.currentTarget) setShowFund(false); }}>
-          <div className="bg-card rounded-t-3xl w-full max-w-md mx-auto p-6">
+          <div className="bg-card rounded-t-3xl w-full max-w-md mx-auto p-6" role="dialog" aria-modal="true" aria-label="Fund wallet">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-extrabold text-foreground">Fund Wallet</h2>
-              <button onClick={() => setShowFund(false)} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                <X className="w-4 h-4 text-gray-500" />
+              <button onClick={() => setShowFund(false)} aria-label="Close fund dialog" className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                <X className="w-4 h-4 text-gray-500" aria-hidden="true" />
               </button>
             </div>
 
@@ -421,6 +425,15 @@ export default function WalletPage({ onBack, canWithdraw }) {
           </div>
         </div>
       )}
+
+      <BottomSheetPicker
+        open={showBankPicker}
+        onClose={() => setShowBankPicker(false)}
+        title="Select your bank"
+        options={NIGERIAN_BANKS.map(b => ({ value: b.code, label: b.name }))}
+        value={bankCode}
+        onChange={(val) => { setBankCode(val); setWithdrawError(''); }}
+      />
     </div>
   );
 }

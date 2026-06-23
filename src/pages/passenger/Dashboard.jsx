@@ -79,8 +79,8 @@ export default function PassengerDashboard() {
                 {walletBalance != null ? `₦${walletBalance.toLocaleString()}` : '···'}
               </span>
             </Link>
-            <button onClick={() => setNotifOpen(true)} className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-              <Bell className="w-5 h-5 text-gray-600" />
+            <button onClick={() => setNotifOpen(true)} aria-label="View notifications" className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+              <Bell className="w-5 h-5 text-gray-600" aria-hidden="true" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-forge-orange rounded-full" />
             </button>
             <Dialog open={notifOpen} onOpenChange={setNotifOpen}>
@@ -99,7 +99,7 @@ export default function PassengerDashboard() {
                 </div>
               </DialogContent>
             </Dialog>
-            <div className="w-10 h-10 bg-forge-orange rounded-full flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-10 h-10 bg-forge-orange rounded-full flex items-center justify-center text-white font-bold text-sm" aria-hidden="true">
               {user?.full_name?.[0]?.toUpperCase() || 'U'}
             </div>
           </div>

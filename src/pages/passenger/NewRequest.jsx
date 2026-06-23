@@ -118,7 +118,7 @@ export default function NewRequest() {
   return (
     <div className="min-h-screen flex flex-col bg-background max-w-md mx-auto">
       <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-card" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
-        <button onClick={() => navigate(-1)}><X className="w-6 h-6 text-foreground" /></button>
+        <button onClick={() => navigate(-1)} aria-label="Close"><X className="w-6 h-6 text-foreground" aria-hidden="true" /></button>
         <h1 className="text-lg font-bold text-foreground">New Request</h1>
         <div className="w-6" />
       </div>
@@ -133,11 +133,11 @@ export default function NewRequest() {
         </MapContainer>
         {/* Map pin mode toggle */}
         <div className="absolute bottom-2 right-2 z-[1000] flex gap-1.5">
-          <button type="button" onClick={() => setActivePin('pickup')}
+          <button type="button" onClick={() => setActivePin('pickup')} aria-pressed={activePin === 'pickup'} aria-label="Set map to pickup mode"
             className={`text-xs font-bold px-3 py-1.5 rounded-full shadow transition-colors ${activePin === 'pickup' ? 'bg-forge-orange text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
             📍 Pickup
           </button>
-          <button type="button" onClick={() => setActivePin('dropoff')}
+          <button type="button" onClick={() => setActivePin('dropoff')} aria-pressed={activePin === 'dropoff'} aria-label="Set map to dropoff mode"
             className={`text-xs font-bold px-3 py-1.5 rounded-full shadow transition-colors ${activePin === 'dropoff' ? 'bg-forge-orange text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
             🏁 Dropoff
           </button>
@@ -199,7 +199,7 @@ export default function NewRequest() {
             { key: 'person', icon: User, label: 'Person' },
             { key: 'goods', icon: Package, label: 'Goods' },
           ].map(({ key, icon: Icon, label }) => (
-            <button key={key} type="button" onClick={() => setType(key)}
+            <button key={key} type="button" onClick={() => setType(key)} aria-pressed={type === key}
               className={`flex items-center justify-center gap-2 py-4 rounded-2xl border-2 font-bold text-sm transition-colors ${
                 type === key ? 'bg-forge-orange border-forge-orange text-white' : 'border-gray-200 text-gray-600'
               }`}>
@@ -209,7 +209,7 @@ export default function NewRequest() {
         </div>
 
         {/* Book for someone else */}
-        <button type="button" onClick={() => setForSomeoneElse(!forSomeoneElse)}
+        <button type="button" onClick={() => setForSomeoneElse(!forSomeoneElse)} aria-pressed={forSomeoneElse}
           className={`w-full flex items-center gap-3 py-4 px-4 rounded-2xl border-2 transition-colors ${
             forSomeoneElse ? 'border-forge-orange bg-forge-orange/5' : 'border-gray-200'
           }`}>
@@ -255,7 +255,7 @@ export default function NewRequest() {
             { key: 'wallet', icon: Wallet, label: 'Wallet', sub: 'Pay from balance' },
             { key: 'cash', icon: Banknote, label: 'Cash', sub: 'Pay driver directly' },
           ].map(({ key, icon: Icon, label, sub }) => (
-            <button key={key} type="button" onClick={() => setPaymentMethod(key)}
+            <button key={key} type="button" onClick={() => setPaymentMethod(key)} aria-pressed={paymentMethod === key}
               className={`flex flex-col items-center gap-1.5 py-4 rounded-2xl border-2 font-bold text-sm transition-colors ${
                 paymentMethod === key ? 'bg-forge-orange border-forge-orange text-white' : 'border-gray-200 text-gray-600'
               }`}>
