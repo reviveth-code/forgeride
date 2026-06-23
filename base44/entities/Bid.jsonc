@@ -22,6 +22,22 @@
       "type": "string",
       "title": "Vehicle Type"
     },
+    "vehicle_color": {
+      "type": "string",
+      "title": "Vehicle Color"
+    },
+    "vehicle_model": {
+      "type": "string",
+      "title": "Vehicle Model"
+    },
+    "vehicle_plate": {
+      "type": "string",
+      "title": "Vehicle Plate"
+    },
+    "phone": {
+      "type": "string",
+      "title": "Driver Phone"
+    },
     "price": {
       "type": "number",
       "title": "Price (\u20a6)"

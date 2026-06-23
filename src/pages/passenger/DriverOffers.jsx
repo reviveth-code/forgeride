@@ -26,22 +26,9 @@ export default function DriverOffers() {
   const [request, setRequest] = useState(null);
   const [bids, setBids] = useState([]);
   const [selecting, setSelecting] = useState(null);
-  const [driverProfiles, setDriverProfiles] = useState({});
 
   const loadBids = () =>
-    base44.entities.Bid.filter({ request_id: requestId, status: 'pending' }, 'price').then(async (b) => {
-      setBids(b);
-      // Fetch driver profiles by email (User.list requires admin; filter by email instead)
-      const emails = [...new Set(b.map(bid => bid.driver_id))];
-      const profileMap = {};
-      await Promise.all(emails.map(async (email) => {
-        try {
-          const users = await base44.entities.User.filter({ email });
-          if (users.length > 0) profileMap[email] = users[0];
-        } catch {}
-      }));
-      setDriverProfiles(profileMap);
-    });
+    base44.entities.Bid.filter({ request_id: requestId, status: 'pending' }, 'price').then(setBids);
 
   useEffect(() => {
     base44.entities.RideRequest.get(requestId).then(setRequest);
@@ -94,8 +81,7 @@ export default function DriverOffers() {
     const ss = String(secsLeft % 60).padStart(2, '0');
     const urgent = secsLeft < 30;
     const expired = secsLeft === 0;
-    const dp = driverProfiles[bid.driver_id];
-    const parts = [bid.vehicle_type || dp?.vehicle_type, dp?.vehicle_color, dp?.vehicle_model, dp?.vehicle_plate].filter(Boolean);
+    const parts = [bid.vehicle_type, bid.vehicle_color, bid.vehicle_model, bid.vehicle_plate].filter(Boolean);
 
     return (
       <div key={bid.id} className={`bg-card rounded-2xl p-4 shadow-sm border ${expired ? 'border-red-200 opacity-60' : 'border-border'}`}>
@@ -122,7 +108,7 @@ export default function DriverOffers() {
                 {parts.join(' · ')}
               </p>
             )}
-            {dp?.phone && <p className="text-xs text-gray-400 mt-0.5">📞 {dp.phone}</p>}
+            {bid.phone && <p className="text-xs text-gray-400 mt-0.5">📞 {bid.phone}</p>}
             {bid.message && <p className="text-xs text-gray-400 italic mt-1">"{bid.message}"</p>}
           </div>
         </div>
