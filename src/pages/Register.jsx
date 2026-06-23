@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { isReviewerEmail } from '@/lib/reviewer-access';
 import { ArrowLeft, Loader2, Mail, Lock, User, Phone, ChevronDown, Eye, EyeOff } from 'lucide-react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import BottomSheetPicker from '@/components/BottomSheetPicker';
@@ -36,22 +35,6 @@ export default function Register() {
     setLoading(true);
     try {
       await base44.auth.register({ email: email.trim(), password });
-      if (isReviewerEmail(email)) {
-        const res = await base44.functions.invoke('reviewerLogin', { email: email.trim(), password });
-        if (res.data?.access_token) {
-          base44.auth.setToken(res.data.access_token);
-          const formatted = phone.replace(/^0/, '');
-          const fullPhone = `+234${formatted}`;
-          await base44.auth.updateMe({
-            full_name: fullName,
-            phone: fullPhone,
-            app_role: role,
-            ...(vehicleType && { vehicle_type: vehicleType }),
-          });
-          window.location.href = role === 'driver' ? '/driver' : '/passenger';
-          return;
-        }
-      }
       setStep('otp');
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
