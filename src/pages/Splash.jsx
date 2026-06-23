@@ -24,7 +24,8 @@ export default function Splash() {
   return (
     <div className="min-h-screen bg-forge-navy flex flex-col items-center justify-between px-8 pt-20 pb-12">
       <div className="flex-1 flex flex-col items-center justify-center text-center">
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col items-center">
+          <img src="https://media.base44.com/images/public/6a1573c7d7c314d5744004ba/e7cf22d08_ForgeRideIcon.png" alt="ForgeRide" className="w-28 h-28 mb-4 object-contain" />
           <h1 className="text-6xl font-extrabold text-white tracking-tight">
             Forge<span className="text-forge-orange">Ride</span>
           </h1>
