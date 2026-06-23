@@ -19,6 +19,16 @@ Deno.serve(async (req) => {
     if (!trip) return Response.json({ error: 'Trip not found' }, { status: 404 });
     if (trip.status !== 'completed') return Response.json({ error: 'Trip not completed' }, { status: 400 });
 
+    // Idempotency: the automation fires on every Trip update (including GPS pings after
+    // completion). Skip if settlement already ran to prevent double-credit / double-debit.
+    const [existingEarning, existingCashEarning] = await Promise.all([
+      base44.asServiceRole.entities.Transaction.filter({ reference: `TRIP-EARN-${trip_id}` }),
+      base44.asServiceRole.entities.Transaction.filter({ reference: `TRIP-CASH-EARN-${trip_id}` }),
+    ]);
+    if (existingEarning.length > 0 || existingCashEarning.length > 0) {
+      return Response.json({ skipped: true, reason: 'Trip already settled' });
+    }
+
     const { agreed_price, passenger_id, driver_id, passenger_name, driver_name, payment_method } = trip;
     if (!agreed_price || !passenger_id || !driver_id) {
       return Response.json({ error: 'Trip missing required fields' }, { status: 400 });
@@ -47,19 +57,17 @@ Deno.serve(async (req) => {
         metadata: { trip_id, driver_id, agreed_price, convenience_fee: convenienceFee, payment_method: 'cash' },
       });
 
-      // Credit driver wallet with full collected amount, then debit Forge's cut
+      // Cash trips: driver collected cash directly from the passenger.
+      // Do NOT credit the wallet — that would double-pay (cash in hand + wallet balance).
+      // Just fetch (or create) the wallet record so we can attach the earning transaction.
       const driverWallets = await base44.asServiceRole.entities.Wallet.filter({ user_id: driver_id });
       let driverWallet;
       if (driverWallets.length > 0) {
         driverWallet = driverWallets[0];
-        // Credit full collection (fare + convenience fee), debit Forge cut = net driverEarning
-        await base44.asServiceRole.entities.Wallet.update(driverWallet.id, {
-          balance: (driverWallet.balance || 0) + totalPassengerCost - totalForgeCut,
-        });
       } else {
         driverWallet = await base44.asServiceRole.entities.Wallet.create({
           user_id: driver_id,
-          balance: totalPassengerCost - totalForgeCut,
+          balance: 0,
           currency: 'NGN',
         });
       }
