@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, MapPin, CheckCircle, XCircle, Clock, Package, User } from 'lucide-react';
 import { format } from 'date-fns';
+import AppHeader from '@/components/AppHeader';
 
 const statusConfig = {
   completed: { label: 'Completed', color: 'text-green-600 bg-green-50', icon: CheckCircle },
@@ -30,13 +31,8 @@ export default function TripHistory() {
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto">
       {/* Header */}
-      <div className="bg-forge-navy pt-12 pb-6 px-5">
-        <div className="flex items-center gap-4 mb-5">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center">
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
-          <h1 className="text-xl font-extrabold text-white">Trip History</h1>
-        </div>
+      <AppHeader title="Trip History" onBack={() => navigate(-1)} variant="dark" />
+      <div className="bg-forge-navy px-5 pb-6">
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white/10 rounded-2xl p-4 text-center">
             <p className="text-white font-extrabold text-2xl">{completedCount}</p>

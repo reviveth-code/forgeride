@@ -152,10 +152,11 @@ export default function TripTracking() {
         {/* Floating back button */}
         <button
           onClick={() => navigate('/passenger')}
-          className="absolute z-[1000] bg-card shadow-lg rounded-full w-10 h-10 flex items-center justify-center"
+          aria-label="Go back"
+          className="absolute z-[1000] bg-card shadow-lg rounded-full w-11 h-11 flex items-center justify-center"
           style={{ top: 'calc(env(safe-area-inset-top) + 12px)', left: '16px' }}
         >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
+          <ArrowLeft className="w-5 h-5 text-foreground" aria-hidden="true" />
         </button>
 
         {/* Live / offline badge */}
@@ -176,10 +177,10 @@ export default function TripTracking() {
 
         {/* Phone button floating */}
         {driverProfile?.phone && (
-          <a href={`tel:${driverProfile.phone}`}
+          <a href={`tel:${driverProfile.phone}`} aria-label={`Call ${trip?.driver_name || 'driver'}`}
             className="absolute z-[1000] bg-forge-orange shadow-lg rounded-full w-12 h-12 flex items-center justify-center"
             style={{ top: 'calc(env(safe-area-inset-top) + 12px)', right: '16px' }}>
-            <Phone className="w-5 h-5 text-white" />
+            <Phone className="w-5 h-5 text-white" aria-hidden="true" />
           </a>
         )}
       </div>

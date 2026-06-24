@@ -193,12 +193,12 @@ export default function ActiveTrip() {
           </span>
         </div>
         {passengerPhone ? (
-          <a href={`tel:${passengerPhone}`} className="w-11 h-11 bg-forge-orange rounded-full shadow-lg flex items-center justify-center">
-            <Phone className="w-5 h-5 text-white" />
+          <a href={`tel:${passengerPhone}`} aria-label="Call passenger" className="w-11 h-11 bg-forge-orange rounded-full shadow-lg flex items-center justify-center">
+            <Phone className="w-5 h-5 text-white" aria-hidden="true" />
           </a>
         ) : (
-          <button className="w-11 h-11 bg-forge-orange/60 rounded-full shadow-lg flex items-center justify-center">
-            <Phone className="w-5 h-5 text-white" />
+          <button aria-label="Call passenger unavailable" className="w-11 h-11 bg-forge-orange/60 rounded-full shadow-lg flex items-center justify-center">
+            <Phone className="w-5 h-5 text-white" aria-hidden="true" />
           </button>
         )}
       </div>

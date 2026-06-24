@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { CheckCircle, Clock } from 'lucide-react';
 import PullToRefresh from '@/components/PullToRefresh';
+import AppHeader from '@/components/AppHeader';
 
 export default function DriverHistory() {
   const [trips, setTrips] = useState([]);
@@ -19,8 +20,8 @@ export default function DriverHistory() {
 
   return (
     <PullToRefresh onRefresh={load}>
-      <div className="bg-card px-5 pt-8 pb-5 border-b border-border">
-        <h1 className="text-2xl font-extrabold text-foreground mb-4">Trip History</h1>
+      <AppHeader title="Trip History" />
+      <div className="bg-card px-5 pb-5 border-b border-border">
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-forge-orange/10 rounded-2xl p-4">
             <p className="text-xs text-gray-400 font-medium mb-1">Total Earned</p>

@@ -56,7 +56,7 @@ export default function DriverLayout() {
                 aria-current={active ? 'page' : undefined}
                 aria-label={label}
                 onClick={() => handleTabPress(path, tabPaths)}
-                className={`flex flex-col items-center gap-1 px-4 py-2 transition-colors ${active ? 'text-forge-orange' : 'text-gray-400'}`}
+                className={`flex flex-col items-center gap-1 px-4 py-2 min-h-[44px] transition-colors ${active ? 'text-forge-orange-dark' : 'text-muted-foreground'}`}
               >
                 <Icon className="w-5 h-5" aria-hidden="true" />
                 <span className="text-xs font-medium">{label}</span>

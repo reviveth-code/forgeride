@@ -6,6 +6,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import '@/utils/leaflet';
 import LocationSearchInput from '@/components/LocationSearchInput';
 import MapViewUpdater from '@/components/MapViewUpdater';
+import AppHeader from '@/components/AppHeader';
 
 // Allows tapping the map to set a location
 function MapClickHandler({ onPickup, onDropoff, activePin }) {
@@ -117,11 +118,7 @@ export default function NewRequest() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background max-w-md mx-auto">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-card" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
-        <button onClick={() => navigate(-1)} aria-label="Close"><X className="w-6 h-6 text-foreground" aria-hidden="true" /></button>
-        <h1 className="text-lg font-bold text-foreground">New Request</h1>
-        <div className="w-6" />
-      </div>
+      <AppHeader title="New Request" onBack={() => navigate(-1)} />
 
       <div className="h-52 relative">
         <MapContainer center={[6.5244, 3.3792]} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false} attributionControl={false}>

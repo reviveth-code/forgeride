@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { MapPin } from 'lucide-react';
 import PullToRefresh from '@/components/PullToRefresh';
+import AppHeader from '@/components/AppHeader';
 
 const ACTIVE_STATUSES = ['driver_arriving', 'awaiting_passenger_confirm', 'in_progress'];
 
@@ -24,10 +25,7 @@ export default function PassengerTrack() {
 
   return (
     <PullToRefresh onRefresh={loadTrips}>
-      <div className="bg-card px-5 pt-8 pb-5 border-b border-border">
-        <h1 className="text-2xl font-extrabold text-foreground">Track</h1>
-        <p className="text-sm text-gray-400 mt-1">Your active trips</p>
-      </div>
+      <AppHeader title="Track" subtitle="Your active trips" />
       <div className="px-5 py-4 space-y-3">
         {trips.length === 0 ? (
           <div className="bg-card rounded-2xl p-10 text-center">

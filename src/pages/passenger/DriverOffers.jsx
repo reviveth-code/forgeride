@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Star, Loader2, Car, Clock } from 'lucide-react';
+import AppHeader from '@/components/AppHeader';
 
 const BID_TTL_MS = 3 * 60 * 1000;
 
@@ -136,10 +137,7 @@ export default function DriverOffers() {
 
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto">
-      <div className="flex items-center gap-4 px-5 py-4 bg-card border-b border-border">
-        <button onClick={() => navigate(-1)} aria-label="Go back"><ArrowLeft className="w-6 h-6 text-foreground" aria-hidden="true" /></button>
-        <h1 className="text-lg font-bold text-foreground">Driver Offers</h1>
-      </div>
+      <AppHeader title="Driver Offers" onBack={() => navigate(-1)} />
 
       {request && (
         <div className="bg-card mx-5 mt-4 rounded-2xl p-4 shadow-sm">

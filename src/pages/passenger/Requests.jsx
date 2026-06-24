@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ChevronRight, Plus } from 'lucide-react';
 import PullToRefresh from '@/components/PullToRefresh';
+import AppHeader from '@/components/AppHeader';
 
 const STATUS_STYLES = {
   open: 'bg-green-100 text-green-700',
@@ -28,12 +29,12 @@ export default function PassengerRequests() {
 
   return (
     <PullToRefresh onRefresh={load}>
-      <div className="bg-card px-5 pt-8 pb-5 border-b border-border">
-        <h1 className="text-2xl font-extrabold text-foreground mb-4">My Requests</h1>
+      <AppHeader title="My Requests" />
+      <div className="bg-card px-5 pb-5 border-b border-border">
         <div className="flex gap-2 overflow-x-auto pb-1">
           {['all', 'open', 'matched', 'active', 'completed', 'cancelled'].map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap capitalize transition-colors ${filter === f ? 'bg-forge-orange text-white' : 'bg-gray-100 text-gray-500'}`}>
+            <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f}
+              className={`px-4 py-2.5 rounded-full text-xs font-bold whitespace-nowrap capitalize transition-colors min-h-[44px] ${filter === f ? 'bg-forge-orange text-white' : 'bg-muted text-muted-foreground'}`}>
               {f === 'all' ? 'All' : f}
             </button>
           ))}

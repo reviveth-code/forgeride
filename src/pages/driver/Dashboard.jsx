@@ -105,18 +105,18 @@ export default function DriverDashboard() {
               }
             </div>
             <div>
-              <p className="text-xs text-gray-400">Welcome back,</p>
+              <p className="text-xs text-muted-foreground">Welcome back,</p>
               <h1 className="text-xl font-extrabold text-foreground">{user?.display_name || user?.full_name || 'Driver'} 🔥</h1>
             </div>
           </div>
-          <Link to="/driver/wallet" className="flex items-center gap-1.5 bg-gray-100 rounded-full pl-2 pr-3 py-1.5">
-            <Wallet className="w-4 h-4 text-gray-600" />
-            <span className="text-xs font-bold text-gray-700">
+          <Link to="/driver/wallet" aria-label="View wallet" className="flex items-center gap-1.5 bg-muted rounded-full pl-3 pr-3 py-2.5 min-h-[44px]">
+            <Wallet className="w-4 h-4 text-foreground" aria-hidden="true" />
+            <span className="text-xs font-bold text-foreground">
               {walletBalance != null ? `₦${walletBalance.toLocaleString()}` : '···'}
             </span>
           </Link>
-          <button onClick={() => loadRequests()} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center relative">
-            <Bell className="w-5 h-5 text-gray-600" />
+          <button onClick={() => loadRequests()} aria-label="Refresh requests" className="w-11 h-11 bg-muted rounded-full flex items-center justify-center relative">
+            <Bell className="w-5 h-5 text-foreground" aria-hidden="true" />
             {requests.length > 0 && <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-forge-orange rounded-full" />}
           </button>
         </div>
@@ -130,11 +130,11 @@ export default function DriverDashboard() {
         <div className="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3">
           <div className="flex items-center gap-2">
             <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
-            <span className={`text-sm font-bold ${isOnline ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className={`text-sm font-bold ${isOnline ? 'text-green-600' : 'text-muted-foreground'}`}>
               {isOnline ? 'ONLINE' : 'OFFLINE'}
             </span>
           </div>
-          <button onClick={toggleOnline}
+          <button onClick={toggleOnline} aria-label={isOnline ? 'Go offline' : 'Go online'} aria-pressed={isOnline}
             className={`w-14 h-7 rounded-full transition-all relative ${isOnline ? 'bg-green-500' : 'bg-gray-300'}`}>
             <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${isOnline ? 'translate-x-7' : 'translate-x-0.5'}`} />
           </button>
@@ -151,18 +151,18 @@ export default function DriverDashboard() {
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-xl font-extrabold text-forge-orange">₦{trips.reduce((s,t) => s + (t.agreed_price||0), 0).toLocaleString()}</p>
-              <p className="text-xs text-gray-400 font-medium uppercase mt-0.5">Earnings</p>
+              <p className="text-xs text-muted-foreground font-medium uppercase mt-0.5">Earnings</p>
             </div>
             <div>
               <p className="text-xl font-extrabold text-foreground">{trips.length}</p>
-              <p className="text-xs text-gray-400 font-medium uppercase mt-0.5">Trips Done</p>
+              <p className="text-xs text-muted-foreground font-medium uppercase mt-0.5">Trips Done</p>
             </div>
             <div>
               <div className="flex items-center justify-center gap-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                 <p className="text-xl font-extrabold text-foreground">{avgRating ?? '—'}</p>
               </div>
-              <p className="text-xs text-gray-400 font-medium uppercase mt-0.5">Rating</p>
+              <p className="text-xs text-muted-foreground font-medium uppercase mt-0.5">Rating</p>
             </div>
           </div>
         </div>
@@ -210,7 +210,7 @@ export default function DriverDashboard() {
                     <span className="truncate">{req.dropoff_address}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="flex gap-3 text-xs text-gray-400">
+                    <div className="flex gap-3 text-xs text-muted-foreground">
                       <span>~{req.estimated_distance_km} km</span>
                       <span>~{req.estimated_duration_min} min</span>
                     </div>

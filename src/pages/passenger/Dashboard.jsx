@@ -69,18 +69,18 @@ export default function PassengerDashboard() {
       <div className="bg-white px-5 pt-8 pb-5">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <p className="text-sm text-gray-400">{greeting()}</p>
+            <p className="text-sm text-muted-foreground">{greeting()}</p>
             <h1 className="text-2xl font-extrabold text-gray-900">{(user?.display_name || user?.full_name || 'User').split(' ')[0]}</h1>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/passenger/wallet" className="flex items-center gap-1.5 bg-gray-100 rounded-full pl-2 pr-3 py-1.5">
-              <Wallet className="w-4 h-4 text-gray-600" />
-              <span className="text-xs font-bold text-gray-700">
+            <Link to="/passenger/wallet" aria-label="View wallet" className="flex items-center gap-1.5 bg-muted rounded-full pl-3 pr-3 py-2.5 min-h-[44px]">
+              <Wallet className="w-4 h-4 text-foreground" aria-hidden="true" />
+              <span className="text-xs font-bold text-foreground">
                 {walletBalance != null ? `₦${walletBalance.toLocaleString()}` : '···'}
               </span>
             </Link>
-            <button onClick={() => setNotifOpen(true)} aria-label="View notifications" className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-              <Bell className="w-5 h-5 text-gray-600" aria-hidden="true" />
+            <button onClick={() => setNotifOpen(true)} aria-label="View notifications" className="relative w-11 h-11 bg-muted rounded-full flex items-center justify-center">
+              <Bell className="w-5 h-5 text-foreground" aria-hidden="true" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-forge-orange rounded-full" />
             </button>
             <Dialog open={notifOpen} onOpenChange={setNotifOpen}>
@@ -93,7 +93,7 @@ export default function PassengerDashboard() {
                     <Info className="w-5 h-5 text-forge-orange flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm font-bold text-gray-800">Welcome to ForgeRide!</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Post a ride or delivery request to get started.</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Post a ride or delivery request to get started.</p>
                     </div>
                   </div>
                 </div>
@@ -115,17 +115,17 @@ export default function PassengerDashboard() {
       <div className="px-5 py-5 space-y-5">
         {/* What do you need */}
         <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">What Do You Need?</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">What Do You Need?</p>
           <div className="grid grid-cols-2 gap-3">
             <Link to="/passenger/new-request" className="bg-white p-5 rounded-2xl border border-gray-100 text-center cursor-pointer hover:border-forge-orange transition-colors">
               <User className="w-8 h-8 text-gray-700 mx-auto mb-2" />
               <p className="font-bold text-sm text-gray-900">Transport</p>
-              <p className="text-xs text-gray-400">Move Yourself</p>
+              <p className="text-xs text-muted-foreground">Move Yourself</p>
             </Link>
             <Link to="/passenger/new-request" className="bg-white p-5 rounded-2xl border border-gray-100 text-center cursor-pointer hover:border-forge-orange transition-colors">
               <Package className="w-8 h-8 text-gray-700 mx-auto mb-2" />
               <p className="font-bold text-sm text-gray-900">Delivery</p>
-              <p className="text-xs text-gray-400">Send Goods</p>
+              <p className="text-xs text-muted-foreground">Send Goods</p>
             </Link>
           </div>
         </div>
@@ -141,10 +141,10 @@ export default function PassengerDashboard() {
 
         {/* Active Requests */}
         <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Active Requests</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Active Requests</p>
           {requests.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center">
-              <p className="text-gray-400 text-sm">No active requests. Post one to get started!</p>
+              <p className="text-muted-foreground text-sm">No active requests. Post one to get started!</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -153,7 +153,7 @@ export default function PassengerDashboard() {
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1 mr-3">
                       <p className="font-bold text-sm text-gray-900">Pickup: {req.pickup_address}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Drop off: {req.dropoff_address}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Drop off: {req.dropoff_address}</p>
                     </div>
                     <span className={`text-xs font-semibold px-3 py-1 rounded-full capitalize flex-shrink-0 ${STATUS_STYLES[req.status] || 'bg-gray-100 text-gray-500'}`}>
                       {req.status}

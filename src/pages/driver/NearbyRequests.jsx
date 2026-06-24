@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { MapPin, Clock, User, Package } from 'lucide-react';
 import PullToRefresh from '@/components/PullToRefresh';
+import AppHeader from '@/components/AppHeader';
 
 function haversine(lat1, lng1, lat2, lng2) {
   if (!lat1 || !lng1 || !lat2 || !lng2) return null;
@@ -127,13 +128,7 @@ export default function NearbyRequests() {
 
   return (
     <PullToRefresh onRefresh={load}>
-      <div className="bg-card px-5 pt-8 pb-4 border-b border-border">
-        <h1 className="text-2xl font-extrabold text-foreground mb-3">Nearby Requests</h1>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <MapPin className="w-4 h-4 text-forge-orange" />
-          <span>Showing requests within 25km of your location</span>
-        </div>
-      </div>
+      <AppHeader title="Nearby Requests" subtitle="Showing requests within 25km of your location" />
 
       <div className="px-5 py-3 flex gap-2 overflow-x-auto">
         {[

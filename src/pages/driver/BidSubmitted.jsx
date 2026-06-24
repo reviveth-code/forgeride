@@ -113,8 +113,9 @@ export default function BidSubmitted() {
   return (
     <div className="min-h-screen bg-forge-navy flex flex-col max-w-md mx-auto">
       <div className="px-5 pt-8">
-        <button onClick={() => navigate('/driver/requests')}>
-          <ArrowLeft className="w-6 h-6 text-white" />
+        <button onClick={() => navigate('/driver/requests')} aria-label="Go back"
+          className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
+          <ArrowLeft className="w-5 h-5 text-white" aria-hidden="true" />
         </button>
       </div>
 

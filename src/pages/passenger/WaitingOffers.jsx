@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, X, Clock } from 'lucide-react';
+import AppHeader from '@/components/AppHeader';
 
 const BID_TTL_MS = 3 * 60 * 1000;
 
@@ -163,11 +164,16 @@ export default function WaitingOffers() {
 
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto">
-      <div className="flex items-center justify-between px-5 py-4 bg-card border-b border-border">
-        <button onClick={() => navigate('/passenger')}><ArrowLeft className="w-6 h-6 text-foreground" /></button>
-        <h1 className="text-lg font-bold text-foreground">Waiting for Offers</h1>
-        <button onClick={() => setShowCancelModal(true)}><X className="w-5 h-5 text-gray-400" /></button>
-      </div>
+      <AppHeader
+        title="Waiting for Offers"
+        onBack={() => navigate('/passenger')}
+        right={
+          <button onClick={() => setShowCancelModal(true)} aria-label="Cancel request"
+            className="w-11 h-11 rounded-full flex items-center justify-center bg-muted">
+            <X className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
+          </button>
+        }
+      />
 
       <div className="px-5 py-6 space-y-4">
         {/* Pulsing indicator */}
